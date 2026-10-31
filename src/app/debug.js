@@ -102,8 +102,12 @@
         if (o.moonstones) s.currency.moonstones += o.moonstones;
         if (o.items === 'sample') ['common', 'magic', 'rare', 'set', 'unique'].forEach(function (r) { s.inventory.push(PB.Loot.rollItem(rng, 10, r, s)); });
         if (o.roster === 'stress' && w) {
-          var want = { wolf: 12, raven: 6, bear: 2, vine: 3, spirit: 1 }, p = w.player, n = 0;
-          PB.SUMMON_ORDER.forEach(function (t) {
+          var baseWant = { wolf: 12, raven: 6, bear: 2, vine: 3, spirit: 1 }, want = {}, p = w.player, n = 0;
+          PB.Classes.order(s).forEach(function (t) {
+            var role = (PB.SUMMONS[t] && PB.SUMMONS[t].role) || t;
+            want[t] = baseWant[t] || baseWant[role] || 1;
+          });
+          PB.Classes.order(s).forEach(function (t) {
             var have = s.roster.filter(function (x) { return x.type === t && !x.fusedFrom; });
             while (have.length < want[t]) { var ind = PB.Evolution.createIndividual(s, t, rng); ind.level = 6; have.push(ind); }
             have.slice(0, want[t]).forEach(function (ind) {

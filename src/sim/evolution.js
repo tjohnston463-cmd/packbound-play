@@ -120,6 +120,11 @@
     dmgMul *= 1 + (stats.levelSpike || 0) / 100; // the druid's own steps, every 5 levels
     var tags = tagsFor(ind);
     tags.forEach(function (t) { hpMul *= 1 + (stats[t + 'Hp'] || 0) / 100; dmgMul *= 1 + (stats[t + 'Dmg'] || 0) / 100; });
+    // A skeleton is a wolf's job. Fang runes and wolf damage on gear reach it, and do not stack twice on a real wolf.
+    if (d.role && d.role !== ind.type) {
+      hpMul *= 1 + (stats[d.role + 'Hp'] || 0) / 100;
+      dmgMul *= 1 + (stats[d.role + 'Dmg'] || 0) / 100;
+    }
     // Auras are copied, never shared with the data table: Oak Sage, Wolverine, Bloodmoon and Hearthfire change them.
     var aura = null;
     if (d.aura) {

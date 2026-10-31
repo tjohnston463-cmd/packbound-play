@@ -14,6 +14,7 @@
   function B(world) { return world.mods.behaviors; }
   function d2(ax, ay, bx, by) { var dx = bx - ax, dy = by - ay; return dx * dx + dy * dy; }
   function has(e, t) { return !!(e.tags && e.tags.indexOf(t) >= 0); }
+  function isRole(e, t) { return has(e, t) || e.role === t; }
   function anchorOf(world) { return world.anchor || world.player; }
   function near(world, x, y, r, skip) { return PB.AISummons.enemiesNear(world, x, y, r, skip); }
   function sub(e, share) { return { id: e.id, kind: 'summon', team: 0, tags: e.tags, x: e.x, y: e.y, dmg: [e.dmg[0] * share, e.dmg[1] * share], critChance: 0 }; }
@@ -25,7 +26,7 @@
   // Swarming: wolves -25% life. Hivemind: the whole pack +v% life. Life % is kept (refresh after an evolution).
   function bodyMods(world, e) {
     var b = B(world), m = 1;
-    if (b.swarming && has(e, 'wolf')) m *= SWARM_HP;
+    if (b.swarming && isRole(e, 'wolf')) m *= SWARM_HP;
     if (b.hivemind) m *= 1 + b.hivemind / 100;
     if (m === 1) return;
     var f = e.maxHp > 0 ? e.hp / e.maxHp : 1;
@@ -75,13 +76,13 @@
   function summonTick(world, e, it, dt, spd) {
     var b = B(world), p = world.player;
     if (bodyTick(world, e, dt)) return -1;
-    if (b.tethered && has(e, 'bear') && p.hp > 0 && d2(e.x, e.y, p.x, p.y) > YANK_R * YANK_R) {
+    if (b.tethered && isRole(e, 'bear') && p.hp > 0 && d2(e.x, e.y, p.x, p.y) > YANK_R * YANK_R) {
       var dx = e.x - p.x, dy = e.y - p.y, dl = Math.sqrt(dx * dx + dy * dy);
       PB.Events.emit(world.events, 'yank', { id: e.id, x: e.x, y: e.y, x2: p.x + dx / dl * YANK_TO, y2: p.y + dy / dl * YANK_TO });
       e.x = p.x + dx / dl * YANK_TO; e.y = p.y + dy / dl * YANK_TO; e.vx = 0; e.vy = 0;
     }
     if (b.ghostly) spd *= 1 + b.ghostly / 100;
-    if (has(e, 'raven') && (b.thousandeye || (b.migratory && focusTarget(world)))) markPassing(world, e);
+    if (isRole(e, 'raven') && (b.thousandeye || (b.migratory && focusTarget(world)))) markPassing(world, e);
     if (b.stampeding && world.pack.recallT > 0 && !world.pack.recalled[e.id] && e.ai !== 'rooted' && e.atk >= 0) trample(world, e, b.stampeding);
     return spd;
   }
@@ -141,7 +142,7 @@
     return true;
   }
 
-  function isVine(v) { return v.team === 0 && !v.dead && v.ai === 'rooted' && has(v, 'vine'); }
+  function isVine(v) { return v.team === 0 && !v.dead && v.ai === 'rooted' && isRole(v, 'vine'); }
   function unperch(world, e) { var v = world.byId[e.perchOn]; if (v && v.perchBy === e.id) v.perchBy = 0; e.perchOn = 0; e.perched = false; }
 
   // Sentinel: each vine takes one raven; the perched raven fires feathers (its own strike) at the vine's grown reach.
@@ -232,7 +233,7 @@
         best = null;
         for (i = 0; i < world.ents.length; i++) {
           e = world.ents[i];
-          if (e.team !== 0 || e.dead || e.temp || !e.indId || e.kind !== 'summon' || !has(e, 'wolf')) continue;
+          if (e.team !== 0 || e.dead || e.temp || !e.indId || e.kind !== 'summon' || !isRole(e, 'wolf')) continue;
           if (!best || e.id < best.id) best = e;
         }
         world._denId = best ? best.id : 0;
@@ -249,13 +250,13 @@
 
   // First Howl: her bite Marks, and wolves beside her take the first real haste step for 1.5s.
   function denBite(world, e, target) {
-    if (!B(world).denmother || !has(e, 'wolf') || !target || target.dead) return;
+    if (!B(world).denmother || !isRole(e, 'wolf') || !target || target.dead) return;
     var mother = tagDen(world);
     if (!mother || e.id !== mother.id) return;
     PB.AISummons.mark(world, target, e);
     var r2 = PB.Sets.DEN_R * PB.Sets.DEN_R;
     pack(world, function (f) {
-      if (!has(f, 'wolf') || d2(e.x, e.y, f.x, f.y) > r2) return;
+      if (!isRole(f, 'wolf') || d2(e.x, e.y, f.x, f.y) > r2) return;
       f.howlT = Math.max(f.howlT || 0, 1.5);
       f.atkSpdBuff = Math.max(f.atkSpdBuff || 0, 0.15);
     });
@@ -268,7 +269,7 @@
     PB.AISummons.mark(world, target, vine);
     var r2 = PB.Sets.WREATH_R * PB.Sets.WREATH_R, n = 0;
     pack(world, function (f) {
-      if (!has(f, 'raven') || d2(f.x, f.y, target.x, target.y) > r2) return;
+      if (!isRole(f, 'raven') || d2(f.x, f.y, target.x, target.y) > r2) return;
       var bite = Math.max(1, Math.round(((f.dmg[0] + f.dmg[1]) / 2) * 0.5));
       if (PB.World.direct(world, f.id, target, bite, false, 'wreath')) n++;
     });
@@ -291,11 +292,11 @@
   function afterStrike(world, e, target, h) {
     var b = B(world);
     if (b.denmother) tagDen(world);
-    if (b.predatory && has(e, 'wolf') && !target.dead && !target.boss && target.hp < target.maxHp * b.predatory / 100) {
+    if (b.predatory && isRole(e, 'wolf') && !target.dead && !target.boss && target.hp < target.maxHp * b.predatory / 100) {
       PB.Events.emit(world.events, 'execute', { src: e.id, dst: target.id, x: target.x, y: target.y });
       PB.World.kill(world, e, target);
     }
-    if (b.howling && h.crit && has(e, 'wolf')) {
+    if (b.howling && h.crit && isRole(e, 'wolf')) {
       var r2 = HOWL_R * HOWL_R, inc = b.howling / 100;
       pack(world, function (f) {
         if (d2(e.x, e.y, f.x, f.y) > r2) return;
@@ -305,7 +306,7 @@
       PB.Events.emit(world.events, 'wolfhowl', { id: e.id, x: e.x, y: e.y });
     }
     // Wolfhowl: every 4th wolf bite. The pack nearby swings faster, and a non-boss is slowed.
-    if (b.wolfhowl && has(e, 'wolf')) {
+    if (b.wolfhowl && isRole(e, 'wolf')) {
       e.wordHits = (e.wordHits || 0) + 1;
       if (e.wordHits % 4 === 0) {
         var wr = 220 * 220;
@@ -319,7 +320,7 @@
       }
     }
     denBite(world, e, target);
-    if (b.crowmark && has(e, 'raven') && (target.marked || 0) > 0) {
+    if (b.crowmark && isRole(e, 'raven') && (target.marked || 0) > 0) {
       var nbr = near(world, target.x, target.y, 160, target), ci;
       for (ci = 0; ci < nbr.length; ci++) {
         var markOn = nbr[ci];
@@ -330,11 +331,11 @@
         break;
       }
     }
-    if (b.oakheart && has(e, 'bear') && !target.dead && !target.boss) {
+    if (b.oakheart && isRole(e, 'bear') && !target.dead && !target.boss) {
       target.tauntBy = e.id; target.tauntT = 2.5;
       PB.Events.emit(world.events, 'taunt', { id: e.id, x: e.x, y: e.y, n: 1 });
     }
-    if (b.thunderous && has(e, 'bear')) {
+    if (b.thunderous && isRole(e, 'bear')) {
       var s = sub(e, THUNDER_SHARE);
       near(world, e.x, e.y, b.thunderous, target).forEach(function (o) { PB.World.damage(world, s, o); });
       PB.Events.emit(world.events, 'shockwave', { id: e.id, x: e.x, y: e.y, radius: b.thunderous });
@@ -462,7 +463,7 @@
         e = world.ents[i];
         if (e.team !== 0 || e.dead) continue;
         if (isVine(e) && !e.temp) { e.grafted = false; if (!vine || e.id > vine.id) vine = e; }
-        if (has(e, 'bear') && !bear) bear = e;
+        if (isRole(e, 'bear') && !bear) bear = e;
       }
       if (vine && bear) { vine.grafted = true; vine.x = bear.x; vine.y = bear.y; vine.vx = 0; vine.vy = 0; }
     }
@@ -484,7 +485,7 @@
   function fenrir(world, b) {
     var pk = world.pack, f = pk.fenrir, i;
     if (!f && b.fenrir && pk.frenzyT > 0) {
-      var wolves = world.ents.filter(function (e) { return e.team === 0 && !e.dead && !e.temp && e.indId && e.type === 'wolf' && e !== world.anchor; })
+      var wolves = world.ents.filter(function (e) { return e.team === 0 && !e.dead && !e.temp && e.indId && isRole(e, 'wolf') && e !== world.anchor; })
         .sort(function (x, y) { return x.id - y.id; });
       if (wolves.length < 2) return;
       var host = wolves[0], hp = 0, mx = 0, d0 = 0, d1 = 0;
@@ -496,7 +497,7 @@
         PB.Feeding.stop(world, m);
         m.dead = true; m.released = true; world.active[m.indId] = host.id;
       }
-      host.hp = hp; host.maxHp = mx; host.dmg = [d0, d1]; host.r = PB.SUMMONS.wolf.r * FENRIR_R; host.mass *= FENRIR_MASS; host.fenrir = true;
+      host.hp = hp; host.maxHp = mx; host.dmg = [d0, d1]; host.r = (PB.SUMMONS[host.type] || PB.SUMMONS.wolf).r * FENRIR_R; host.mass *= FENRIR_MASS; host.fenrir = true;
       pk.fenrir = { host: host.id, members: members };
       PB.Events.emit(world.events, 'fenrir', { id: host.id, x: host.x, y: host.y, n: wolves.length });
       return;
@@ -524,7 +525,8 @@
 
   // The Green Below (keystone): a temporary vine sprouts where an elite dies or is first rooted.
   function greenBelow(world, x, y) {
-    var e = PB.World.spawn(world, 'summon', 'vine', x, y, { temp: true, life: SPROUT_T, sprout: true });
+    var sprout = (PB.Classes && world.save) ? PB.Classes.kinType(world.save, 'vine') : 'vine';
+    var e = PB.World.spawn(world, 'summon', sprout, x, y, { temp: true, life: SPROUT_T, sprout: true });
     if (e) PB.Events.emit(world.events, 'sprout', { id: e.id, x: x, y: y });
     return e;
   }

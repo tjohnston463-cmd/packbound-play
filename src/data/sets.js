@@ -10,7 +10,7 @@
       { id: 'howltooth', base: 'fangcharm', name: 'Tooth of the First Howl', ilvl: 4, stats: { wolfDmg: 10 }, text: '+10% wolf damage' }
     ], partial: [
       { n: 2, stats: { wolfDmg: 20 }, text: '(2) Wolves deal +20% damage.' },
-      { n: 3, behaviors: { denmother: 1 }, text: '(3) The oldest wolf is the Den Mother. Her bites Mark, and wolves beside her swing faster.' }
+      { n: 3, behaviors: { denmother: 1 }, text: '(3) The oldest hunter of your calling is the Den Mother. Her bites Mark, and those hunters beside her swing faster.' }
     ] },
     { id: 'greenwreath', name: 'The Green Wreath', pieces: [
       { id: 'wreathstaff', base: 'ashstaff', name: 'Rooted Ash', ilvl: 5, stats: { vineDmg: 15 }, text: '+15% vine damage' },
@@ -18,7 +18,7 @@
       { id: 'wreathseed', base: 'seedcharm', name: 'Crowseed', ilvl: 6, stats: { ravenDmg: 15 }, text: '+15% raven damage' }
     ], partial: [
       { n: 2, stats: { rootDur: 0.6 }, text: '(2) Vines hold for 0.6s longer.' },
-      { n: 3, behaviors: { wreath: 1 }, text: '(3) A rooted foe is Marked, and every raven in reach pecks it at once.' }
+      { n: 3, behaviors: { wreath: 1 }, text: '(3) A rooted foe is Marked, and every skirmisher of your calling in reach pecks it at once.' }
     ] },
     { id: 'hearthwake', name: 'Hearth of the Hunt', pieces: [
       { id: 'wakevisor', base: 'stagmask', name: 'Visor of the Wake', ilvl: 10, stats: { spiritMax: 15 }, text: '+15 max Spirit' },

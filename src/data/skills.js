@@ -33,6 +33,7 @@
     { id: 'chorus',     tree: 'command', tier: 3, max: 3, req: ['rallyshield'], name: 'Chorus Master', text: '+20% Chorus burst damage per rank', effect: function (r) { return { chorusDmg: 20 * r }; } },
     { id: 'eternal',    tree: 'command', tier: 4, max: 1, req: ['fusionlore'], name: 'Wild Hunt Eternal', text: 'KEYSTONE: the Wild Hunt calls every Echo you own; refunds 30% Chorus', effect: function () { return { behaviors: { eternal: 1 } }; } }
   ];
+  PB.SKILLS.forEach(function (s) { if (!s.cls) s.cls = 'druid'; });
   PB.SKILL_BY_ID = {};
   PB.SKILLS.forEach(function (s) { PB.SKILL_BY_ID[s.id] = s; });
 })(globalThis.PB = globalThis.PB || {});

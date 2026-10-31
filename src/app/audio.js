@@ -5,7 +5,9 @@
   'use strict';
   var MAX_VOICES = 24, THROTTLE = 0.03, CAW_GAP = 0.15, PAN_SPAN = 640;
   var A = { ctx: null, master: null, comp: null, noise: null, volume: 0.7, muted: false, voices: [], last: {}, camX: 0, lastCaw: -1, rng: null };
-  var KEY = { wolf: 220, raven: 329.63, bear: 110, vine: 293.66, spirit: 277.18 };
+  var KEY = { wolf: 220, raven: 329.63, bear: 110, vine: 293.66, spirit: 277.18,
+    skeleton: 196, mage: 311, golem: 98, spike: 247, priest: 262,
+    ember: 233, wisp: 349, monolith: 117, hydra: 277, nimbus: 330 };
 
   function semi(f, n) { return f * Math.pow(2, n / 12); }
 
@@ -207,6 +209,8 @@
           if (ev.team === 0) return playAt('summonDie', ev.x, { root: KEY[ev.unit] || 220 });
           return playAt(ev.elite || ev.boss ? 'eliteDeath' : 'death', ev.x);
         case 'summon': return KEY[ev.unit] ? playAt('summon_' + ev.unit, ev.x) : null;
+        case 'bonespear': return playAt('whip', ev.x, { pitch: 1.35 });
+        case 'fireball': return playAt('maul', ev.x, { pitch: 1.7, gain: 0.55 });
         case 'command': return SOUNDS['cmd_' + ev.kind] ? playAt('cmd_' + ev.kind, undefined) : null;
         case 'mark':
           if (A.lastCaw >= 0 && now() - A.lastCaw < CAW_GAP - 1e-9) return null;

@@ -6,15 +6,19 @@
 
   function capFor(type, mods) {
     var st = (mods && mods.stats) || {}, b = (mods && mods.behaviors) || {};
-    var cap = PB.SUMMONS[type].cap + (st[type + 'Cap'] || 0) + (st.summonCap || 0);
+    var def = PB.SUMMONS[type];
+    var cap = def.cap + (st[type + 'Cap'] || 0) + (st.summonCap || 0);
     if (type === 'wolf' && b.swarming) cap += 2;
     if (type === 'wolf' && b.lordfangs) cap *= 2;
+    // Dead Rise (deadrise) is the skeleton keystone: capBehavior on the summon, same doubling as Lord of Fangs.
+    if (def.capBehavior && b[def.capBehavior]) cap *= def.capMult || 2;
     return cap;
   }
 
   function costFor(type, mods) {
-    var b = (mods && mods.behaviors) || {};
-    return PB.SUMMONS[type].cost * (type === 'wolf' && b.lordfangs ? 0.5 : 1);
+    var b = (mods && mods.behaviors) || {}, def = PB.SUMMONS[type];
+    if (def.costBehavior && b[def.costBehavior]) return def.cost * (def.costMul == null ? 0.5 : def.costMul);
+    return def.cost * (type === 'wolf' && b.lordfangs ? 0.5 : 1);
   }
 
   function ensure(world) { if (!world.den) world.den = {}; if (!world.active) world.active = {}; if (!world.inds) world.inds = {}; }

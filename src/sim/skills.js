@@ -14,6 +14,7 @@
   function canAllocate(player, nodeId) {
     var node = PB.SKILL_BY_ID[nodeId];
     if (!node) return { ok: false, reason: 'unknown' };
+    if ((node.cls || 'druid') !== (player.classId || 'druid')) return { ok: false, reason: 'class' };
     var alloc = player.skills, rank = alloc[nodeId] || 0;
     if (rank >= node.max) return { ok: false, reason: 'max' };
     if (spent(alloc) >= pointsTotal(player)) return { ok: false, reason: 'points' };
@@ -59,6 +60,7 @@
     { from: 'blight', stat: 'rootDmg', per: 10 },
     { from: 'wellspring', stat: 'chorusDmg', per: 5 }
   ];
+  (PB.CLASS_SYNERGIES || []).forEach(function (s) { PB.SKILL_SYNERGIES.push(s); });
 
   PB.Skills = { canAllocate: canAllocate, allocate: allocate, respec: respec, aggregate: aggregate, spentIn: spentIn, spent: spent, pointsTotal: pointsTotal, pointsLeft: pointsLeft };
 })(globalThis.PB = globalThis.PB || {});

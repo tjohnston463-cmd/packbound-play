@@ -38,13 +38,15 @@
   function controls() {
     var rows = [], seen = {};
     function add(keys, textStr, actions) { rows.push({ keys: keys, text: textStr, actions: actions }); actions.forEach(function (a) { seen[a] = true; }); }
-    add(MOVE.map(function (a) { return keysFor(a).join('/'); }).join(' '), 'Move the druid (or the summon you Skinwalk)', MOVE.slice());
-    add('LMB (hold)', 'Thornlash: a short whip cone. In menus: select', ['thornlash']);
+    var cls = PB.Classes.of(PB.Game && PB.Game.G && PB.Game.G.save);
+    var summonOrder = cls.order;
+    add(MOVE.map(function (a) { return keysFor(a).join('/'); }).join(' '), cls.moveText, MOVE.slice());
+    add('LMB (hold)', cls.attackText, ['thornlash']);
     ['focus', 'hold', 'trail'].forEach(function (id) { add(PB.COMMANDS[id].key, cmdName(id) + ': ' + PB.COMMANDS[id].text, [id]); });
     var sKeys = [], sActs = [], dActs = [];
-    PB.SUMMON_ORDER.forEach(function (t, i) { sKeys = sKeys.concat(keysFor('summon' + (i + 1))); sActs.push('summon' + (i + 1)); dActs.push('dismiss' + (i + 1)); });
-    add(sKeys.join(' '), 'Summon ' + PB.SUMMON_ORDER.map(function (t) { return PB.SUMMONS[t].name; }).join(' / ') + ' (the vine roots at the cursor)', sActs);
-    add('Shift + ' + sKeys.join(' '), 'Dismiss one of that type (50% Spirit refund)', dActs);
+    summonOrder.forEach(function (t, i) { sKeys = sKeys.concat(keysFor('summon' + (i + 1))); sActs.push('summon' + (i + 1)); dActs.push('dismiss' + (i + 1)); });
+    add(sKeys.join(' '), 'Summon ' + summonOrder.map(function (t) { return PB.SUMMONS[t].name; }).join(' / ') + ' ' + cls.plantNote, sActs);
+    add('Shift + ' + sKeys.join(' '), 'Dismiss one of that type (50% ' + cls.resource + ' refund)', dActs);
     for (var a in KEY_CMDS) {
       var id = KEY_CMDS[a];
       add(keysFor(a).join(' '), commandText(id), [a]);
@@ -136,7 +138,8 @@
   // another action uses swaps the two (PB.Input.bind), so nothing is ever left without a key.
   function bindRows() {
     var rows = [['up', 'Move up'], ['left', 'Move left'], ['down', 'Move down'], ['right', 'Move right']];
-    PB.SUMMON_ORDER.forEach(function (t, i) { rows.push(['summon' + (i + 1), 'Summon ' + PB.SUMMONS[t].name]); });
+    var calling = PB.Classes.of(PB.Game && PB.Game.G && PB.Game.G.save);
+    calling.order.forEach(function (t, i) { rows.push(['summon' + (i + 1), 'Summon ' + PB.SUMMONS[t].name]); });
     for (var a in KEY_CMDS) rows.push([a, cmdName(KEY_CMDS[a])]);
     return rows.concat([['bound', 'Bound (dodge)'], ['skinwalk', 'Skinwalk'], ['hunt', 'Wild Hunt'], ['interact', 'Interact'],
       ['inventory', 'Inventory'], ['skills', 'Skill tree'], ['pack', 'Pack'], ['pause', 'Pause (Esc always works)'], ['mute', 'Mute'], ['labels', 'Show loot names']]);

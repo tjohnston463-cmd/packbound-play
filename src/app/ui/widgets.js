@@ -201,7 +201,8 @@
       case 'max': return 'Already at max rank';
       case 'points': return 'No skill points left (one per level, one per first boss kill)';
       case 'requires': return 'Requires ' + (PB.SKILL_BY_ID[r.node] ? PB.SKILL_BY_ID[r.node].name : r.node);
-      case 'tier': return 'Needs ' + r.need + ' points spent in ' + (TREE_NAME[r.tree] || r.tree);
+      case 'tier': return 'Needs ' + r.need + ' points spent in ' + ((PB.TREE_NAME && PB.TREE_NAME[r.tree]) || TREE_NAME[r.tree] || r.tree);
+      case 'class': return 'That skill belongs to another calling';
       case 'equipped': return 'Unequip it first';
       case 'slot': return 'That does not fit there';
       case 'level': return 'Needs level ' + (r.need || 20);

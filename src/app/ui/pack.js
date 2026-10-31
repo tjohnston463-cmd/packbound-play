@@ -19,7 +19,7 @@
   }
 
   function sorted(save) {
-    var order = PB.SUMMON_ORDER;
+    var order = PB.Classes.order(save);
     return save.roster.slice().sort(function (a, b) {
       if (S.sort === 'level') return b.level - a.level || a.id - b.id;
       var ta = order.indexOf(a.type), tb = order.indexOf(b.type);

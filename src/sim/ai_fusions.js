@@ -17,6 +17,7 @@
   var EPS = 1e-9;
 
   function d2(ax, ay, bx, by) { var dx = bx - ax, dy = by - ay; return dx * dx + dy * dy; }
+  function castOf(e) { return e.cast || e.type; }
   function near(world, x, y, r, skip) { return PB.AISummons.enemiesNear(world, x, y, r, skip); }
   function sub(e, share) { return { id: e.id, kind: 'summon', team: 0, tags: e.tags, x: e.x, y: e.y, dmg: [e.dmg[0] * share, e.dmg[1] * share], critChance: 0 }; }
   function friends(world, fn) {
@@ -25,13 +26,25 @@
 
   // Perks that change the body itself. Called by World.spawnIndividual and World.refreshIndividual.
   function onSpawn(world, e) {
-    switch (e.type) {
+    var meta = PB.FUSION_BY_ID && PB.FUSION_BY_ID[e.type];
+    if (meta) {
+      if (meta.mirror) e.cast = meta.mirror;
+      if (meta.packTag) e.packTag = meta.packTag;
+      if (meta.sapType) e.sapType = meta.sapType;
+      if (meta.kin) e.kin = meta.kin;
+    }
+    switch (castOf(e)) {
       case 'wraithwolf': e.ghost = true; break;
       case 'carrionbloom': e.noGrab = true; break;
-      case 'greatbear': e.r = PB.SUMMONS.bear.r * 1.4; e.knockMul = 2; e.tauntR = 220; break;
+      case 'greatbear': e.r = ((e.kin && PB.SUMMONS[e.kin]) || PB.SUMMONS.bear).r * 1.4; e.knockMul = 2; e.tauntR = 220; break;
       case 'stranglegrove': e.range = 220; e.grabN = 2; e.pullAmt = 60; break;
       case 'twinspirit':
-        if (e.aura) { e.aura.regen = PB.SUMMONS.spirit.aura.regen * PB.EVOLUTIONS.spirit.A.t2.mods.regen; e.aura.dmgInc = PB.EVOLUTIONS.spirit.B.t2.mods.dmgAura; }
+        if (e.aura) {
+          var sp = (e.kin && PB.SUMMONS[e.kin]) || PB.SUMMONS.spirit;
+          var evo = (e.kin && PB.EVOLUTIONS[e.kin]) || PB.EVOLUTIONS.spirit;
+          e.aura.regen = (sp.aura && sp.aura.regen || 0) * evo.A.t2.mods.regen;
+          e.aura.dmgInc = evo.B.t2.mods.dmgAura;
+        }
         break;
     }
   }
@@ -49,7 +62,7 @@
       }
       return true;
     }
-    if (e.type === 'stormhound' && it.kind === 'attack' && it.target.marked > 0 && !(e.blinkCd > 0) && e.rooted <= 0) {
+    if (castOf(e) === 'stormhound' && it.kind === 'attack' && it.target.marked > 0 && !(e.blinkCd > 0) && e.rooted <= 0) {
       var t = it.target, dist = Math.sqrt(d2(e.x, e.y, t.x, t.y)), gap = dist - e.r - t.r;
       if (gap > BLINK_MIN) {
         var back = e.r + t.r + e.range * 0.5, ux = (t.x - e.x) / dist, uy = (t.y - e.y) / dist;
@@ -58,7 +71,7 @@
         return true;
       }
     }
-    if (e.type === 'owlbear' && !(e.owlCd > 0) && e.rooted <= 0) {
+    if (castOf(e) === 'owlbear' && !(e.owlCd > 0) && e.rooted <= 0) {
       // Densest cluster: the enemy with the most neighbours within 80px, nearest on ties.
       var cands = near(world, e.x, e.y, OWL_R), best = null, bestN = -1; // a lone enemy is a cluster of one (critique-stageC-grok N3)
       for (var i = 0; i < cands.length; i++) {
@@ -80,7 +93,7 @@
   function update(world, e, it, dt) {
     if (e.blinkCd > 0) e.blinkCd = Math.max(0, e.blinkCd - dt);
     if (e.owlCd > 0) e.owlCd = Math.max(0, e.owlCd - dt);
-    switch (e.type) {
+    switch (castOf(e)) {
       case 'thornpelt':
         e.trailT = (e.trailT || 0) - dt;
         if (e.trailT <= EPS && e.vx * e.vx + e.vy * e.vy > 400) {
@@ -103,7 +116,7 @@
         if (e.sapT <= EPS) {
           e.sapT = WARDEN_SAP;
           var a = world.rng.ai.range(0, PB.M.TAU);
-          PB.World.spawn(world, 'summon', 'vine', e.x + Math.cos(a) * 60, e.y + Math.sin(a) * 60, { temp: true, life: WARDEN_SAP, sapling: true });
+          PB.World.spawn(world, 'summon', e.sapType || 'vine', e.x + Math.cos(a) * 60, e.y + Math.sin(a) * 60, { temp: true, life: WARDEN_SAP, sapling: true });
         }
         break;
       case 'eldersbear':
@@ -157,7 +170,8 @@
           e.pulseT = PULSE;
           var u2 = world.time + PULSE + 0.05;
           friends(world, function (f) {
-            if (f === e || f.tags.indexOf('wolf') < 0 || d2(e.x, e.y, f.x, f.y) > ALPHA_R * ALPHA_R) return;
+            var tag = e.packTag || 'wolf';
+            if (f === e || (f.tags.indexOf(tag) < 0 && f.role !== tag) || d2(e.x, e.y, f.x, f.y) > ALPHA_R * ALPHA_R) return;
             f.alphaInc = ALPHA_INC; f.alphaUntil = u2; f.followId = e.tgtId || 0;
           });
         }
@@ -177,7 +191,7 @@
   // ---------- afterHit: riders on a landed strike ----------
   function afterHit(world, e, target, h) {
     var s;
-    switch (e.type) {
+    switch (castOf(e)) {
       case 'stormhound':
         s = sub(e, STORM_SHARE);
         near(world, target.x, target.y, STORM_R, target).filter(function (o) { return o.marked > 0; }).slice(0, STORM_N).forEach(function (o) {

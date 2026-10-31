@@ -372,18 +372,25 @@
   }
 
   function drawPlayer(g, world, j) {
-    var p = world.player, q = PB.Input.queue, sp = R.atlas.bodies.druid, st = animOf(p);
+    var p = world.player, q = PB.Input.queue, cls = PB.Classes.of(world.save), sp = R.atlas.bodies[cls.body] || R.atlas.bodies.druid, st = animOf(p);
     shadow(g, p);
-    glowAt(g, 'green', p.x, p.y - 6, 55, 0.17);
+    glowAt(g, cls.glow || 'green', p.x, p.y - 6, 55, 0.17);
     if (q) {
       var a = Math.atan2(q.aim.y - p.y, q.aim.x - p.x);
       if (!(Math.abs(p.vx || 0) > 6) && Math.abs(Math.cos(a)) > 0.2) st.face = Math.cos(a) < 0 ? -1 : 1;
       g.strokeStyle = 'rgba(230,220,170,0.35)'; g.lineWidth = 2;
       g.beginPath(); g.moveTo(p.x + Math.cos(a) * 22, p.y + Math.sin(a) * 22); g.lineTo(p.x + Math.cos(a) * 34, p.y + Math.sin(a) * 34); g.stroke();
-      if (q.held && q.held.thornlash) {
-        var reach = PB.Player.LASH_R, half = 35 * Math.PI / 180;
+      if (q.held && q.held.thornlash && cls.attack === 'thornlash') {
+        var reach = PB.Player.lashReach ? PB.Player.lashReach(world) : PB.Player.LASH_R, half = 35 * Math.PI / 180;
         g.strokeStyle = 'rgba(230,220,170,0.35)'; g.lineWidth = 1.5;
         g.beginPath(); g.moveTo(p.x, p.y); g.arc(p.x, p.y, reach, a - half, a + half); g.closePath(); g.stroke();
+      } else if (q.held && q.held.thornlash && cls.attack === 'bonespear') {
+        g.strokeStyle = 'rgba(232,220,190,0.45)'; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x + Math.cos(a) * 300, p.y + Math.sin(a) * 300); g.stroke();
+      } else if (q.held && q.held.thornlash && cls.attack === 'fireball') {
+        var fx = p.x + Math.cos(a) * 220, fy = p.y + Math.sin(a) * 220;
+        g.strokeStyle = 'rgba(255,140,60,0.45)'; g.lineWidth = 1.5;
+        g.beginPath(); g.arc(fx, fy, 74, 0, Math.PI * 2); g.stroke();
       }
     }
     if (p.iframes > 0) g.globalAlpha = 0.5;
@@ -600,7 +607,7 @@
           g.moveTo(s.x + dx * 0.5, s.y + dy * 0.5); g.lineTo(s.x + dx * 0.6 + dy * 0.2, s.y + dy * 0.6 - dx * 0.2);
           g.strokeStyle = '#609bdc'; g.lineWidth = 8; g.globalAlpha = 0.22 * (1 - u); g.stroke();
         }
-        g.globalAlpha = 0.95 * (1 - u); g.strokeStyle = s.bolt ? '#e2f5ff' : '#e6dcbe'; g.lineWidth = 2 - u; g.stroke();
+        g.globalAlpha = 0.95 * (1 - u); g.strokeStyle = s.color || (s.bolt ? '#e2f5ff' : '#e6dcbe'); g.lineWidth = 2 - u; g.stroke();
         continue;
       }
       g.strokeStyle = s.hit ? '#c8ff9a' : '#7fd36f'; g.lineWidth = 4 - 2 * u;

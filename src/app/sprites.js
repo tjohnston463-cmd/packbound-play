@@ -50,6 +50,16 @@
   // Frame size in body radii (3.8 by default): the stag's antlers reach 2.1 r above the centre.
   var SPAN = { stag: 4.6 };
 
+  if (PB.CLASS_PAINT) {
+    for (var pid in PB.CLASS_PAINT) {
+      var pp = PB.CLASS_PAINT[pid];
+      if (pp.family) FAMILY[pid] = pp.family;
+      if (pp.pal) PAL[pid] = pp.pal;
+      if (pp.eye) EYES[pid] = pp.eye;
+      if (pp.extra) EXTRA[pid] = pp.extra;
+    }
+  }
+
   function familyOf(type) { return FAMILY[type] || null; }
 
   // ---------- drawing helpers (all coordinates relative to the body centre, facing +x) ----------
@@ -419,6 +429,7 @@
     var d = PB.SUMMONS[type] || PB.ENEMIES[type] || PB.BOSSES[type];
     if (d) return d.r;
     for (var k in PB.FUSIONS) if (PB.FUSIONS[k].id === type) return PB.FUSIONS[k].r;
+    if (type === 'necro' || type === 'sorc') return 12;
     for (var t in PB.ALPHA) if (PB.ALPHA[t].id === type) return PB.SUMMONS[t].r * 1.25;
     return type === 'druid' ? 12 : 12;
   }
@@ -519,7 +530,7 @@
     var tex = grain(doc), bodies = {}, pack = [].concat(Object.keys(PB.SUMMONS), Object.keys(PB.FUSIONS).map(function (k) { return PB.FUSIONS[k].id; }),
       Object.keys(PB.ALPHA).map(function (k) { return PB.ALPHA[k].id; }));
     pack.forEach(function (t) { bodies[t] = sheetFor(doc, t, true, tex); });
-    Object.keys(PB.ENEMIES).concat(Object.keys(PB.BOSSES), ['druid']).forEach(function (t) { bodies[t] = sheetFor(doc, t, false, tex); });
+    Object.keys(PB.ENEMIES).concat(Object.keys(PB.BOSSES), ['druid', 'necro', 'sorc']).forEach(function (t) { bodies[t] = sheetFor(doc, t, false, tex); });
     var glows = {};
     [['gold', 'rgba(255,210,122,0.9)'], ['white', 'rgba(255,255,255,0.9)'], ['frost', 'rgba(160,220,255,0.9)'], ['ember', 'rgba(255,122,42,0.9)'],
      ['green', 'rgba(140,220,110,0.9)'], ['purple', 'rgba(190,140,255,0.9)'], ['red', 'rgba(255,80,60,0.9)']].forEach(function (p) { glows[p[0]] = glow(doc, p[1]); });
@@ -530,11 +541,13 @@
   }
   // The druid and the base pack, the first zone, then fusions and Alphas, then the later zones in order.
   function bakeOrder() {
-    var out = ['druid'].concat(PB.SUMMON_ORDER || Object.keys(PB.SUMMONS));
+    var out = ['druid'].concat(PB.SUMMON_ORDER || []);
+    Object.keys(PB.SUMMONS).forEach(function (t) { if (out.indexOf(t) < 0) out.push(t); });
     PB.ZONES.forEach(function (z, i) {
       out = out.concat(Object.keys(z.enemies), [z.boss]);
       if (i === 0) out = out.concat(Object.keys(PB.FUSIONS).map(function (k) { return PB.FUSIONS[k].id; }), Object.keys(PB.ALPHA).map(function (k) { return PB.ALPHA[k].id; }));
     });
+    out.push('necro', 'sorc');
     return out;
   }
 

@@ -10,10 +10,10 @@
   };
   var SLOTS = ['staff', 'mask', 'pelt', 'talisman', 'charm1', 'charm2'];
 
-  function newSave(seed) {
+  function newSave(seed, classId) {
     return {
       version: VERSION, seed: seed >>> 0, nextIndId: 1, nextItemId: 1,
-      player: { level: 1, xp: 0, skills: {}, bonusPoints: 0 },
+      player: { level: 1, xp: 0, skills: {}, bonusPoints: 0, classId: PB.Classes.normalize(classId) },
       roster: [], inventory: [], equipped: { staff: null, mask: null, pelt: null, talisman: null, charm1: null, charm2: null },
       currency: { moonstones: 0, dust: 0 },
       runes: PB.Runes.emptyPouch(), cubeRolls: 0, gambleRolls: 0,
@@ -116,6 +116,7 @@
     if (!isInt(s.nextIndId, 1, 1e9) || !isInt(s.nextItemId, 1, 1e9)) return 'counters';
     var p = s.player;
     if (!isObj(p) || !isInt(p.level, 1, PB.Progression.PLAYER_MAX) || !isNum(p.xp, 0, 1e12) || !isInt(p.bonusPoints, 0, 100)) return 'player';
+    if (p.classId != null && !PB.Classes.get(p.classId)) return 'player-class';
     if (!isObj(p.skills)) return 'skills';
     var spent = 0;
     for (var id in p.skills) {

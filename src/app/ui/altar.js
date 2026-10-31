@@ -13,12 +13,16 @@
 
   // All 15 recipes in a fixed order: the 10 cross fusions, then the 5 Alphas.
   function codex(save) {
-    var out = [];
+    var out = [], allow = {};
+    PB.Classes.order(save).forEach(function (t) { allow[t] = true; });
     Object.keys(PB.FUSIONS).forEach(function (k) {
-      var f = PB.FUSIONS[k], parts = k.split('+');
+      var parts = k.split('+');
+      if (!allow[parts[0]] || !allow[parts[1]]) return;
+      var f = PB.FUSIONS[k];
       out.push({ id: f.id, name: f.name, known: !!save.codex.fusions[f.id], hint: cap(parts[0]) + ' + ' + cap(parts[1]), ability: f.ability });
     });
     Object.keys(PB.ALPHA).forEach(function (t) {
+      if (!allow[t]) return;
       var a = PB.ALPHA[t];
       out.push({ id: a.id, name: a.name, known: !!save.codex.fusions[a.id], hint: cap(t) + ' + ' + cap(t), ability: a.ability });
     });

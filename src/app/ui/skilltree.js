@@ -4,17 +4,23 @@
 (function (PB) {
   'use strict';
   var LW = 1280, PX = 60, PY = 40, PW = 1160, PH = 640, COL_W = 380, TIER_Y = [0, 150, 270, 390, 510];
-  var TREE_NAME = { fang: 'Fang', wingroot: 'Wing & Root', command: 'Command' };
-  var TREE_TEXT = { fang: 'wolves and the bear', wingroot: 'ravens and vines', command: 'spirits, orders, fusion' };
+  function treeName(id) { return (PB.TREE_NAME && PB.TREE_NAME[id]) || id; }
+  function treeText(id) { return (PB.TREE_TEXT && PB.TREE_TEXT[id]) || ''; }
+  function treesNow(G) { return PB.Classes.trees(G && G.save); }
+  function skillsNow(G) {
+    var trees = treesNow(G);
+    return PB.SKILLS.filter(function (n) { return trees.indexOf(n.tree) >= 0; });
+  }
 
-  function layout() {
-    var pos = {};
-    PB.SKILL_TREES.forEach(function (tree, ti) {
+  function layout(G) {
+    var pos = {}, trees = treesNow(G), skills = skillsNow(G);
+    trees.forEach(function (tree, ti) {
       for (var tier = 1; tier <= 4; tier++) {
-        var nodes = PB.SKILLS.filter(function (n) { return n.tree === tree && n.tier === tier; });
+        var nodes = skills.filter(function (n) { return n.tree === tree && n.tier === tier; });
         nodes = nodes.map(function (n, i) { var par = n.req && pos[n.req[0]]; return { n: n, k: par ? par.x : 1e9 + i }; }) // children sit under their parents
           .sort(function (a, b) { return a.k - b.k; }).map(function (o) { return o.n; });
-        nodes.forEach(function (n, i) { pos[n.id] = { x: PX + 20 + ti * COL_W + COL_W / 2 + (i - (nodes.length - 1) / 2) * 112, y: PY + TIER_Y[tier] }; });
+        var gap = nodes.length > 3 ? 86 : 112;
+        nodes.forEach(function (n, i) { pos[n.id] = { x: PX + 20 + ti * COL_W + COL_W / 2 + (i - (nodes.length - 1) / 2) * gap, y: PY + TIER_Y[tier] }; });
       }
     });
     return pos;
@@ -27,25 +33,26 @@
   }
 
   function draw(g, G) {
-    var UI = PB.UI, C = UI.C, p = G.save.player, pos = layout(), left = PB.Skills.pointsTotal(p) - PB.Skills.spent(p.skills);
+    var UI = PB.UI, C = UI.C, p = G.save.player, pos = layout(G), left = PB.Skills.pointsTotal(p) - PB.Skills.spent(p.skills);
+    var cls = PB.Classes.of(G.save), skills = skillsNow(G), trees = treesNow(G);
     UI.dim(g, 0.78);
-    UI.panel(g, PX, PY, PW, PH, { title: 'Skill Tree' });
+    UI.panel(g, PX, PY, PW, PH, { title: cls.title + ' — ' + cls.attackName });
     UI.text(g, left + ' point' + (left === 1 ? '' : 's') + ' to spend', PX + 30, PY + 14, UI.font(15, true), left ? C.gold : C.dim);
-    UI.text(g, 'A tier opens at 0 / 3 / 6 / 10 points in its tree', PX + PW - 30, PY + 14, UI.font(12), C.dim, 'right');
-    PB.SKILL_TREES.forEach(function (tree, ti) {
+    UI.text(g, cls.fantasy, PX + PW - 30, PY + 14, UI.font(12), C.dim, 'right');
+    trees.forEach(function (tree, ti) {
       var cx = PX + 20 + ti * COL_W + COL_W / 2;
-      UI.text(g, TREE_NAME[tree] + '  (' + PB.Skills.spentIn(p.skills, tree) + ')', cx, PY + 50, UI.font(17, true), C.bone, 'center');
-      UI.text(g, TREE_TEXT[tree], cx, PY + 72, UI.font(12), C.dim, 'center');
+      UI.text(g, treeName(tree) + '  (' + PB.Skills.spentIn(p.skills, tree) + ')', cx, PY + 50, UI.font(17, true), C.bone, 'center');
+      UI.text(g, treeText(tree), cx, PY + 72, UI.font(12), C.dim, 'center');
     });
     g.lineWidth = 2;
-    PB.SKILLS.forEach(function (n) { // parent lines first
+    skills.forEach(function (n) { // parent lines first
       (n.req || []).forEach(function (rid) {
         var a = pos[rid], b = pos[n.id];
         g.strokeStyle = p.skills[rid] ? 'rgba(232,135,58,0.7)' : 'rgba(176,142,84,0.25)';
         g.beginPath(); g.moveTo(a.x, a.y + 26); g.lineTo(b.x, b.y - 26); g.stroke();
       });
     });
-    PB.SKILLS.forEach(function (n) {
+    skills.forEach(function (n) {
       var at = pos[n.id], rank = p.skills[n.id] || 0, v = verdict(p, n), r = { x: at.x - 28, y: at.y - 28, w: 56, h: 56 }, hot = UI.hover(r);
       var key = n.tier === 4;
       if (v.ok) { g.shadowColor = 'rgba(255,214,120,0.9)'; g.shadowBlur = 16 + 6 * Math.sin(UI.t * 4); }

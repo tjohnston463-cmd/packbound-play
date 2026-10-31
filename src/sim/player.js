@@ -119,8 +119,17 @@
     }
   }
 
+  function orderOf(world) { return PB.Classes.order(world && world.save); }
+
+  function weaponBonus(world) {
+    var st = world.mods.stats || {};
+    var lv = world.save && world.save.player ? world.save.player.level : 1;
+    return (st.thornDmg || 0) + Math.floor((lv - 1) / 2);
+  }
+
   function spawnPoint(world, type, p, aim) {
-    if (type === 'vine') {
+    var def = PB.SUMMONS[type];
+    if (def && def.rooted) {
       var dx = aim.x - p.x, dy = aim.y - p.y, d = Math.sqrt(dx * dx + dy * dy);
       if (d > VINE_MAX) { dx *= VINE_MAX / d; dy *= VINE_MAX / d; }
       return { x: p.x + dx, y: p.y + dy };
@@ -144,7 +153,8 @@
     var r = PB.Roster.summon(world, type, at.x, at.y);
     if (!r.ok || !r.ent) return;
     p[pool] -= cost;
-    if (type === 'wolf' && b.lordfangs) r.ent.fadeT = FANGS_FADE;
+    var def = PB.SUMMONS[type];
+    if ((type === 'wolf' && b.lordfangs) || (def && def.fades && def.capBehavior && b[def.capBehavior])) r.ent.fadeT = FANGS_FADE;
   }
 
   // Dismiss the newest summon of that type: back to the roster at once, half the cost refunded (floored).
@@ -191,8 +201,8 @@
       } else if (a === 'hunt') {
         var an = world.anchor || world.player, hr = PB.Chorus.startHunt(world, Math.atan2(input.aim.y - an.y, input.aim.x - an.x) || 0);
         if (!hr.ok) PB.Events.emit(world.events, 'command-fail', { kind: 'hunt', reason: hr.reason });
-      } else if (a.indexOf('summon') === 0) summonKey(world, PB.SUMMON_ORDER[+a.slice(6) - 1], input);
-      else if (a.indexOf('dismiss') === 0) dismissKey(world, PB.SUMMON_ORDER[+a.slice(7) - 1]);
+      } else if (a.indexOf('summon') === 0) summonKey(world, orderOf(world)[+a.slice(6) - 1], input);
+      else if (a.indexOf('dismiss') === 0) dismissKey(world, orderOf(world)[+a.slice(7) - 1]);
     }
     if (input.click && world.anchor) PB.Skinwalk.signature(world, input.click); // RMB is the possessed summon's signature
     else if (input.click) {
@@ -209,6 +219,79 @@
       e.fadeT -= dt;
       if (e.fadeT <= EPS) { PB.Roster.release(world, e); PB.Events.emit(world.events, 'fade', { id: e.id, unit: e.type, x: e.x, y: e.y }); }
     }
+  }
+
+  // Bone Spear: a line, not a cone. It curses. Only the skeletons swing on it. The whip stays the druid's.
+  function boneSpear(world, p, input) {
+    var a = Math.atan2(input.aim.y - p.y, input.aim.x - p.x), st = world.mods.stats || {};
+    var lv = world.save && world.save.player ? world.save.player.level : 1;
+    var reach = 300 + 12 * Math.floor(lv / 5);
+    p.facing = a; p.lashCd = Math.max(0.28, 0.4 - Math.min(4, Math.floor((st.thornDmg || 0) / 5)) * 2 / 60);
+    var bonus = weaponBonus(world) + (st.spearDmg || 0);
+    var x1 = p.x + Math.cos(a) * reach, y1 = p.y + Math.sin(a) * reach;
+    var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [11 + bonus, 18 + bonus], critChance: 0.08, auraDmgInc: p.auraDmgInc || 0 };
+    var hit = false, ents = world.ents, i, e;
+    for (i = 0; i < ents.length; i++) {
+      e = ents[i];
+      if (!isEnemy(e) || distToSeg(e.x, e.y, p.x, p.y, x1, y1) > e.r + 18) continue;
+      e.amplify = Math.max(e.amplify || 0, 3 + (st.curseDur || 0));
+      e.marked = Math.max(e.marked || 0, 3 + (st.markDur || 0));
+      if ((st.decrep || 0) > 0 && !e.boss) e.slowT = Math.max(e.slowT || 0, st.decrep);
+      PB.World.damage(world, att, e);
+      hit = true;
+    }
+    if (hit) {
+      for (i = 0; i < ents.length; i++) if (ents[i].kind === 'summon' && !ents[i].dead && ents[i].role === 'wolf') ents[i].cd = 0;
+    }
+    PB.Events.emit(world.events, 'bonespear', { x: p.x, y: p.y, x2: x1, y2: y1, hit: hit });
+    if (hit) PB.World.hitStop(world, 24);
+  }
+
+  // Fireball: you are the damage. It bursts on the first body in the line, or at the end of the reach.
+  function fireball(world, p, input) {
+    var a = Math.atan2(input.aim.y - p.y, input.aim.x - p.x), st = world.mods.stats || {}, b = world.mods.behaviors || {};
+    var reach = 360;
+    p.facing = a; p.lashCd = Math.max(0.3, 0.46 - Math.min(4, Math.floor((st.thornDmg || 0) / 5)) * 2 / 60);
+    var bonus = weaponBonus(world) + (st.boltDmg || 0);
+    var x1 = p.x + Math.cos(a) * reach, y1 = p.y + Math.sin(a) * reach;
+    var bestT = 2, tx = x1, ty = y1, i, e, ents = world.ents;
+    for (i = 0; i < ents.length; i++) {
+      e = ents[i];
+      if (!isEnemy(e)) continue;
+      var vx = x1 - p.x, vy = y1 - p.y, c = vx * vx + vy * vy;
+      var t = c > 0 ? ((e.x - p.x) * vx + (e.y - p.y) * vy) / c : 0;
+      if (t < 0 || t > 1) continue;
+      var px = p.x + vx * t, py = p.y + vy * t, dx = e.x - px, dy = e.y - py;
+      if (dx * dx + dy * dy > (e.r + 14) * (e.r + 14)) continue;
+      if (t < bestT) { bestT = t; tx = e.x; ty = e.y; }
+    }
+    var rad = 74 + (st.splash || 0), burn = 5 * (1 + (st.burnDmg || 0) / 100);
+    if (b.meteor) { rad += 28; burn *= 1.4; }
+    if (b.cataclysm) rad += 18;
+    var att = { id: 0, kind: 'player', team: 0, tags: [], x: tx, y: ty, dmg: [16 + bonus, 26 + bonus], critChance: Math.min(0.5, 0.07 + (st.boltCrit || 0) / 100), auraDmgInc: p.auraDmgInc || 0 };
+    var hit = false;
+    for (i = 0; i < ents.length; i++) {
+      e = ents[i];
+      if (!isEnemy(e)) continue;
+      var ex = e.x - tx, ey = e.y - ty;
+      if (ex * ex + ey * ey > (rad + e.r) * (rad + e.r)) continue;
+      if (b.cataclysm) e.marked = Math.max(e.marked || 0, 2);
+      PB.World.damage(world, att, e);
+      if (!e.dead) PB.World.applyDot(e, 'burn', burn, 3, 0);
+      hit = true;
+    }
+    if (hit && b.cataclysm) {
+      for (i = 0; i < ents.length; i++) if (ents[i].kind === 'summon' && !ents[i].dead && ents[i].role === 'wolf') ents[i].cd = 0;
+    }
+    PB.Events.emit(world.events, 'fireball', { x: tx, y: ty, radius: rad, hit: hit });
+    if (hit) PB.World.hitStop(world, 28);
+  }
+
+  function basicAttack(world, p, input) {
+    var kind = PB.Classes.of(world.save).attack;
+    if (kind === 'bonespear') boneSpear(world, p, input);
+    else if (kind === 'fireball') fireball(world, p, input);
+    else thornlash(world, p, input);
   }
 
   function update(world, input, dt) {
@@ -251,7 +334,7 @@
     }
 
     dispatch(world, input);
-    if (held.indexOf('thornlash') >= 0 && p.lashCd <= EPS) thornlash(world, p, input);
+    if (held.indexOf('thornlash') >= 0 && p.lashCd <= EPS) basicAttack(world, p, input);
     regen(world, p, dt);
   }
 

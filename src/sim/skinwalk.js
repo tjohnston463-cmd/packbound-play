@@ -86,7 +86,7 @@
                      alphawolf: 'pounce', murder: 'dive', greatbear: 'slam', stranglegrove: 'lash', twinspirit: 'pulse' };
   var BLINK_R = 400, CLEAVE_ARC = 45 * Math.PI / 180, CLEAVE_MUL = 1.3, BRAMBLE_N = 8, BRAMBLE_R = 50, CROW_N = 3, CROW_T = 6, CROW_R = 260;
   var QUAKE_R = 120, QUAKE_T = 1.2, ROAR_R = 200, ROAR_T = 1.5;
-  function sigKind(e) { return FUSION_SIG[e.type] || BASE_SIG[e.type] || BASE_SIG[e.tags[0]] || 'pounce'; }
+  function sigKind(e) { return FUSION_SIG[e.cast] || FUSION_SIG[e.type] || BASE_SIG[e.type] || BASE_SIG[e.role] || BASE_SIG[e.tags[0]] || 'pounce'; }
 
   // The enemy nearest the cursor within r of the body, or null.
   function enemyNearCursor(world, e, at, r) {

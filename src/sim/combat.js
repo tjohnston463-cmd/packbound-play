@@ -3,6 +3,7 @@
   'use strict';
 
   function hasTag(ent, tag) { return !!(ent.tags && ent.tags.indexOf(tag) >= 0); }
+  function roleIs(ent, tag) { return hasTag(ent, tag) || ent.role === tag; }
   var TACTICS_BASE = 3; // innate Pack Tactics; skill ranks add on top
 
   // Order matters only for documentation; every rule is additive (inc) or multiplicative (more).
@@ -11,13 +12,13 @@
       when: function (a, d) { return d.marked > 0; },
       apply: function (m, a, d, ctx) { m.inc += 0.10 + (ctx.stats.markDmg || 0) / 100; } },
     { id: 'markcrit',   text: 'Wolves vs Marked: +30% crit chance, plus 5% per rank of Keen Eyes, and crit multiplier at least 2.0.',
-      when: function (a, d) { return d.marked > 0 && hasTag(a, 'wolf'); },
+      when: function (a, d) { return d.marked > 0 && roleIs(a, 'wolf'); },
       apply: function (m, a, d, ctx) { m.critChance += 0.30 + (ctx.stats.markCrit || 0) / 100; m.critMult = Math.max(m.critMult, 2.0); } },
     { id: 'pinned',     text: 'Bears vs Rooted: x1.5 damage, plus 10% per rank of Blight (the maul pins).',
-      when: function (a, d) { return d.rooted > 0 && hasTag(a, 'bear'); },
+      when: function (a, d) { return d.rooted > 0 && roleIs(a, 'bear'); },
       apply: function (m, a, d, ctx) { m.more *= 1.5 * (1 + (ctx.stats.rootDmg || 0) / 100); } },
     { id: 'tactics',    text: 'Wolves: +3% per other living wolf, +3% more per Pack Tactics rank.',
-      when: function (a) { return hasTag(a, 'wolf'); },
+      when: function (a) { return roleIs(a, 'wolf'); },
       apply: function (m, a, d, ctx) { m.inc += ((TACTICS_BASE + (ctx.stats.packTactics || 0)) / 100) * Math.max(0, (ctx.wolvesAlive || 0) - 1); } },
     { id: 'frenzy',     text: 'Frenzy active: x1.15 damage for all summons.',
       when: function (a, d, ctx) { return ctx.frenzy && a.team === 0 && a.kind === 'summon'; },
@@ -58,6 +59,9 @@
     { id: 'echoes',     text: 'Echoes: +2% summon damage per Enshrined Echo.',
       when: function (a, d, ctx) { return (ctx.stats.packDmgEcho || 0) > 0 && a.team === 0 && a.kind === 'summon'; },
       apply: function (m, a, d, ctx) { m.inc += ctx.stats.packDmgEcho / 100; } },
+    { id: 'amplify',    text: 'Amplify: Bone Spear curses the body. It takes +20% damage while the curse holds.',
+      when: function (a, d) { return (d.amplify || 0) > 0; },
+      apply: function (m) { m.inc += 0.20; } },
     { id: 'lashed',     text: 'Thornlash: a summon hitting a lashed enemy deals +50% damage for 2s. The whip tells the pack where to bite.',
       when: function (a, d) { return (d.lashed || 0) > 0 && a.team === 0 && a.kind === 'summon'; },
       apply: function (m) { m.more *= 1.5; } },

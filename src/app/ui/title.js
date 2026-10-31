@@ -4,7 +4,7 @@
 (function (PB) {
   'use strict';
   var LW = 1280, LH = 720, RIDGE = 470;
-  var T = { t: 0, stars: null, sil: null, confirmT: 0 };
+  var T = { t: 0, stars: null, sil: null, confirmT: 0, classId: 'druid' };
 
   function lcg(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 
@@ -105,14 +105,19 @@
       T.t += dt || 0; if (T.confirmT > 0) T.confirmT -= dt || 0;
       drawScene(g, T.t);
       drawLogo(g, UI, T.t);
-      var has = PB.Game.hasSave(), y = 330, bw = 260, bh = 44, gap = 54;
+      var has = PB.Game.hasSave(), y = 368, bw = 260, bh = 44, gap = 54;
+      var ids = PB.Classes.ids(), cw = 236, cgap = 12, rowW = ids.length * cw + (ids.length - 1) * cgap, cx0 = cx - rowW / 2;
+      ids.forEach(function (id, i) {
+        var c = PB.Classes.get(id), on = T.classId === id;
+        if (UI.button(g, 'class-' + id, { x: cx0 + i * (cw + cgap), y: 300, w: cw, h: 52 }, c.title, { size: 16, active: on, tone: on ? 'moss' : 'ember', sub: c.blurb })) T.classId = id;
+      });
       if (has && UI.button(g, 'continue', { x: cx - bw / 2, y: y, w: bw, h: bh }, 'Continue', { tone: 'moss', size: 18,
         sub: 'Level ' + G.save.player.level + ' · ' + G.save.roster.length + ' in the pack' })) PB.Game.continueGame();
       if (has) y += gap;
       var label = T.confirmT > 0 ? 'Abandon your pack? Click again' : 'New Hunt';
       if (UI.button(g, 'newhunt', { x: cx - bw / 2, y: y, w: bw, h: bh }, label, { size: 18, active: T.confirmT > 0 })) {
         if (has && T.confirmT <= 0) T.confirmT = 3;
-        else PB.Game.newHunt();
+        else PB.Game.newHunt(T.classId);
       }
       if (UI.button(g, 'settings', { x: cx - bw / 2, y: y + gap, w: bw / 2 - 5, h: 38 }, 'Settings')) PB.Game.open('pause', { tab: 'settings' });
       if (UI.button(g, 'help', { x: cx + 5, y: y + gap, w: bw / 2 - 5, h: 38 }, 'Help')) PB.Game.open('pause', { tab: 'controls' });

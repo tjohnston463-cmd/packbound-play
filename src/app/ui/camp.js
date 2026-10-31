@@ -123,7 +123,8 @@
     var save = G.save, p = save.player, pts = PB.Skills.pointsTotal(p) - PB.Skills.spent(p.skills), c = save.currency;
     UI.text(g, 'Hearthgrove', LW / 2, 16, 'bold 30px ' + UI.FACE, UI.C.bone, 'center');
     var need = PB.Progression.playerXpToNext(p.level), xf = Math.min(1, p.xp / need);
-    UI.text(g, 'Wildcaller level ' + p.level, 24, 18, UI.font(15, true), UI.C.gold);
+    var cls = PB.Classes.of(G.save);
+    UI.text(g, cls.title + ' level ' + p.level, 24, 18, UI.font(15, true), UI.C.gold);
     g.fillStyle = 'rgba(40,40,30,0.9)'; g.fillRect(24, 42, 220, 6); g.fillStyle = UI.C.gold; g.fillRect(24, 42, 220 * xf, 6);
     UI.text(g, Math.floor(p.xp) + ' / ' + need + ' XP' + (pts ? '  ·  ' + pts + ' skill point' + (pts > 1 ? 's' : '') + '!' : ''), 24, 52, UI.font(12), pts ? UI.C.gold : UI.C.dim);
     var runeN = 0;

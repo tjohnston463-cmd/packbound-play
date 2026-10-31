@@ -44,6 +44,7 @@
   }
 
   function hasTag(e, t) { return e.tags.indexOf(t) >= 0; }
+  function roleIs(e, t) { return hasTag(e, t) || e.role === t; }
   function warded(e) { return !!(e.elite && e.elite.indexOf('warded') >= 0); }
   // Every root goes through here: bosses and Warded elites cannot be Rooted (zones.js elite text).
   function canRoot(o) { return o.team === 1 && !o.dead && !o.boss && !warded(o); }
@@ -68,21 +69,25 @@
   function strike(world, e, target, mul, lunging) {
     e.cd = e.atk / PB.Behaviors.rate(world, e, mul);
     var h = PB.World.damage(world, e, target), km = e.infusion === 'stone' ? 1.5 : 1;
-    if (hasTag(e, 'raven')) {
+    if (roleIs(e, 'raven')) {
       if (target.poisonT > 0) {
         var other = world.hash.nearest(target.x, target.y, SPREAD_R, function (o) { return o.team === 1 && !o.dead && o !== target && !(o.poisonT > 0); });
         if (other) poison(world, other, e);
       }
       mark(world, target, e);
     }
-    if (hasTag(e, 'bear')) {
+    if (roleIs(e, 'bear')) {
       PB.World.knock(target, e.x, e.y, KNOCK.bear * km * (e.knockMul || 1));
       PB.Events.emit(world.events, 'maul', { src: e.id, dst: target.id, x: target.x, y: target.y });
       PB.World.hitStop(world, MAUL_STOP);
       if (world.mods.behaviors.maulstun && !target.boss && !target.dead) { target.stunnedT = MAUL_STUN; target.frozenT = Math.max(target.frozenT || 0, MAUL_STUN); } // Crushing Maul
       e.mauls = (e.mauls || 0) + 1;
       if (evoOf(e).quake && e.mauls % 3 === 0) quake(world, e);
-    } else if (hasTag(e, 'wolf')) PB.World.knock(target, e.x, e.y, (lunging ? KNOCK.lunge : KNOCK.wolf) * km);
+    } else if (roleIs(e, 'wolf')) PB.World.knock(target, e.x, e.y, (lunging ? KNOCK.lunge : KNOCK.wolf) * km);
+    var slowFor = world.mods.stats.slowOnHit || 0;
+    if (slowFor > 0 && roleIs(e, 'bear') && !target.dead) target.slowT = Math.max(target.slowT || 0, slowFor);
+    if (world.mods.behaviors.rime && roleIs(e, 'bear') && !target.boss && !target.dead) target.frozenT = Math.max(target.frozenT || 0, 0.35);
+    if (world.mods.behaviors.absolute && roleIs(e, 'bear') && !target.boss && !target.dead) target.frozenT = Math.max(target.frozenT || 0, 0.8);
     afterHit(world, e, target, h);
     PB.AIFusions.afterHit(world, e, target, h);
     PB.Behaviors.afterStrike(world, e, target, h);
@@ -419,7 +424,7 @@
     e.leapCd = Math.max(0, (e.leapCd || 0) - dt);
     e.chargeCd = Math.max(0, (e.chargeCd || 0) - dt);
     var spd = e.speed * mul.speed;
-    if (it.trail && hasTag(e, 'wolf')) spd *= 1.3;
+    if (it.trail && roleIs(e, 'wolf')) spd *= 1.3;
     if (world.pack.recallT > 0 && e.scars && e.scars.indexOf('loyal') >= 0) spd *= 1.2;
     var bs = world.mods.stats.bloodscent;
     if (bs && it.kind === 'attack' && it.target.hp < it.target.maxHp * BLOODSCENT_FRAC) spd *= 1 + bs / 100; // Bloodscent

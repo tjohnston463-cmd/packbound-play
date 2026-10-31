@@ -52,6 +52,7 @@
       ai: def.ai, flying: !!def.flying, aura: def.aura || null, shield: 0, shieldT: 0, fleeT: 0, linkCut: 0, encircled: 0,
       xp: def.xp || 0, boss: !!PB.BOSSES[type] && kind === 'enemy', elite: [], temp: temp, life: 0
     };
+    if (def.role) e.role = def.role;
     if (extra) for (var k in extra) e[k] = extra[k];
     if (temp) world.temps.push(e); else world.counts[kind]++;
     world.ents.push(e);
@@ -158,7 +159,7 @@
     if (def.team !== 0 || def.kind !== 'summon') return false;
     for (var i = 0; i < world.ents.length; i++) {
       var b = world.ents[i];
-      if (b === def || b.dead || b.team !== 0 || b.tags.indexOf('bear') < 0) continue;
+      if (b === def || b.dead || b.team !== 0 || (b.tags.indexOf('bear') < 0 && b.role !== 'bear')) continue;
       var dx = b.x - def.x, dy = b.y - def.y;
       if (dx * dx + dy * dy <= 120 * 120) return true;
     }
@@ -300,7 +301,7 @@
     var hash = world.hash, ents = world.ents;
     hash.clear();
     world.wolvesAlive = 0;
-    for (var i = 0; i < ents.length; i++) { var e = ents[i]; hash.insert(e); if (e.team === 0 && !e.dead && e.tags.indexOf('wolf') >= 0) world.wolvesAlive++; }
+    for (var i = 0; i < ents.length; i++) { var e = ents[i]; hash.insert(e); if (e.team === 0 && !e.dead && (e.tags.indexOf('wolf') >= 0 || e.role === 'wolf')) world.wolvesAlive++; }
     hash.insert(world.player);
   }
 
@@ -413,6 +414,7 @@
       if (e.alphaInc && world.time >= e.alphaUntil) { e.alphaInc = 0; e.followId = 0; }
       if (e.shieldT > 0) { e.shieldT = Math.max(0, e.shieldT - dt); if (e.shieldT === 0) e.shield = 0; }
       if (e.lashed > 0) e.lashed = Math.max(0, e.lashed - dt);
+      if (e.amplify > 0) e.amplify = Math.max(0, e.amplify - dt);
       if (e.temp && e.life > 0) { e.life -= dt; if (e.life <= 1e-9 && !e.dead) { e.dead = true; e.expired = true; } }
     }
 

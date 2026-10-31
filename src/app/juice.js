@@ -256,6 +256,14 @@
       case 'thornlash':
         j.swings.push({ x: ev.x, y: ev.y, angle: ev.angle, t: 0, life: 0.16, hit: ev.hit });
         return;
+      case 'bonespear':
+        j.swings.push({ x: ev.x, y: ev.y, x2: ev.x2, y2: ev.y2, bolt: false, color: '#f4efe2', t: 0, life: 0.18, hit: ev.hit });
+        if (ev.hit) ring(j, ev.x2, ev.y2, 6, 28, 0.25, 0xf4efe2, 2);
+        return;
+      case 'fireball':
+        ring(j, ev.x, ev.y, 10, ev.radius || 74, 0.32, 0xff7a2a, 4);
+        emit(j, ev.x, ev.y, 16, 0xff7a2a, { speed: 160, life: 0.4 });
+        return;
       case 'zone-wake':
         ring(j, ev.x, ev.y, 10, 110, 0.45, ev.zone === 1 ? 0xe07030 : ev.zone === 2 ? 0x9fc6de : ev.zone === 3 ? 0xe3d36b : ev.zone === 4 ? 0x9b5ac2 : 0x6a8f4a, 3);
         return;

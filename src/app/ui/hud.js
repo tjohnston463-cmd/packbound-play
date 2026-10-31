@@ -5,7 +5,9 @@
 (function (PB) {
   'use strict';
   var LW = 1280, LH = 720, LIST_MAX = 14;
-  var COLORS = { wolf: '#a9b4bf', raven: '#8a8ec0', bear: '#d6ecf5', vine: '#6ab04a', spirit: '#ffd27a' };
+  var COLORS = { wolf: '#a9b4bf', raven: '#8a8ec0', bear: '#d6ecf5', vine: '#6ab04a', spirit: '#ffd27a',
+    skeleton: '#d9d3c4', mage: '#c8b0e8', golem: '#c4a574', spike: '#a090c0', priest: '#e4d4ff',
+    ember: '#e07040', wisp: '#f0e68a', monolith: '#b9d4ea', hydra: '#e07040', nimbus: '#f5e46a' };
   var CMD_ROW = ['howl', 'rally', 'frenzy', 'encircle', 'heel', 'bound']; // keys come from the live (rebindable) key map
 
   function denWait(world, type, n, cap) {
@@ -24,7 +26,7 @@
 
   function summonBar(world) {
     var p = world.player, mods = world.mods;
-    return PB.SUMMON_ORDER.map(function (t, i) {
+    return PB.Classes.order(world.save).map(function (t, i) {
       var def = PB.SUMMONS[t], n = PB.Roster.activeCount(world, t), cap = PB.Roster.capFor(t, mods), cost = PB.Roster.costFor(t, mods);
       var den = denWait(world, t, n, cap), pool = mods.behaviors.bloodbound ? 'hp' : 'spirit';
       var afford = pool === 'hp' ? p.hp >= cost + 1 : p.spirit >= cost; // the same payment rule as Player.summonKey
@@ -315,11 +317,14 @@
     var bar = stoneBar();
     if (bar) g.drawImage(bar, 0, LH - BAR_H - 10);
     orb(g, 84, LH - 84, 62, p.hp / p.maxHp, '#6a0d0d', '#e2433a', p.maxHp >= 1e8 ? '∞' : Math.max(0, Math.ceil(p.hp)) + '', now); // ∞: a debug-unkillable druid
-    orb(g, LW - 84, LH - 84, 62, p.spirit / p.maxSpirit, '#0c2a6a', '#4f8de0', Math.floor(p.spirit) + '', now + 1.3);
+    var cls = PB.Classes.of(world.save), orbC = cls.orb || ['#0c2a6a', '#4f8de0'];
+    orb(g, LW - 84, LH - 84, 62, p.spirit / p.maxSpirit, orbC[0], orbC[1], Math.floor(p.spirit) + '', now + 1.3);
     PB.UI.text(g, 'Life', 84, LH - 174, PB.UI.font(11), PB.UI.C.dim, 'center');
     if (p.maxHp < 1e8 && p.hp > 0 && p.hp / p.maxHp <= 0.3) PB.UI.text(g, 'Hurt', 84, LH - 196, PB.UI.font(16, true), '#e2433a', 'center');
-    PB.UI.text(g, 'Spirit', LW - 84, LH - 174, PB.UI.font(11), PB.UI.C.dim, 'center');
-    if (!world.mods.behaviors.bloodbound && p.spirit < PB.Roster.costFor('wolf', world.mods)) PB.UI.text(g, 'Low', LW - 84, LH - 196, PB.UI.font(16, true), '#4f8de0', 'center');
+    PB.UI.text(g, cls.resource, LW - 84, LH - 174, PB.UI.font(11), PB.UI.C.dim, 'center');
+    var cheap = Infinity;
+    PB.Classes.order(world.save).forEach(function (t) { cheap = Math.min(cheap, PB.Roster.costFor(t, world.mods)); });
+    if (!world.mods.behaviors.bloodbound && p.spirit < cheap) PB.UI.text(g, 'Low', LW - 84, LH - 196, PB.UI.font(16, true), orbC[1], 'center');
     drawSummonBar(g, world);
     drawCommandRow(g, world, now);
     drawChorus(g, world, now);
@@ -334,7 +339,8 @@
     var ds = PB.Director.status(world), p = world.player, lines = [];
     lines.push(ds ? ds.name + ' · ' + (ds.wave > PB.Waves.WAVES_PER_ZONE ? 'Boss' : 'Wave ' + ds.wave + ' / ' + PB.Waves.WAVES_PER_ZONE) +
       (ds.state === 'wave' && !ds.boss ? ' · ' + ds.left + ' left' : ds.state === 'lull' ? ' · Lull' : '') : 'The field');
-    lines.push('Life ' + (p.maxHp >= 1e8 ? '∞' : Math.max(0, Math.ceil(p.hp)) + ' / ' + Math.ceil(p.maxHp)) + ' · Spirit ' + Math.floor(p.spirit) + ' / ' + Math.floor(p.maxSpirit));
+    var res = PB.Classes.of(world.save).resource;
+    lines.push('Life ' + (p.maxHp >= 1e8 ? '∞' : Math.max(0, Math.ceil(p.hp)) + ' / ' + Math.ceil(p.maxHp)) + ' · ' + res + ' ' + Math.floor(p.spirit) + ' / ' + Math.floor(p.maxSpirit));
     lines.push('Pack ' + world.counts.summon + ' · Enemies ' + world.counts.enemy + ' · Chorus ' + Math.round(world.chorus ? world.chorus.meter : 0) + '%');
     if (world.boon) lines.push(world.boon.name + (world.boon.cursed ? ' (cursed)' : ''));
     else if (world.grove) lines.push(world.grove.name + ' in the wood');

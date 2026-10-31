@@ -79,8 +79,8 @@
   function newSeed() { return G.seedParam || ((Date.now() ^ Math.floor(Math.random() * 4294967296)) >>> 0) || 1; }
 
   // Title -> a brand-new character (stored at once).
-  function newHunt() {
-    G.save = PB.Save.newSave(newSeed());
+  function newHunt(classId) {
+    G.save = PB.Save.newSave(newSeed(), classId);
     persist('new');
     toCamp();
   }
