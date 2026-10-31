@@ -283,7 +283,7 @@
   node('necro', 'marrow', 'bone', 1, 5, 'Marrow', '+8% summon life per rank', function (r) { return { packHp: 8 * r }; });
   node('necro', 'legion', 'bone', 2, 3, 'Legion', 'Skeletons deal more for each other skeleton alive, the way wolves do, and each rank feeds Howl.', function (r) { return { packTactics: 3 * r }; }, ['raise']);
   node('necro', 'clay', 'bone', 2, 3, 'Clay Flesh', '+15% golem life and damage per rank. Rank 3 raises a second golem. Each rank also hardens the guard.', function (r) { return { golemHp: 15 * r, golemDmg: 15 * r, golemCap: r >= 3 ? 1 : 0 }; }, ['marrow']);
-  node('necro', 'spearhead', 'bone', 3, 5, 'Spearhead', '+4 Bone Spear damage per rank. The staff still steps the spear.', function (r) { return { spearDmg: 4 * r }; }, ['legion']);
+  node('necro', 'spearhead', 'bone', 3, 5, 'Spearhead', '+4 Bone Spear damage per rank. The staff still steps the spear. Each rank returns 2% of the spear as Essence.', function (r) { return { spearDmg: 4 * r, spiritLeech: 2 * r }; }, ['legion']);
   node('necro', 'ossify', 'bone', 3, 1, 'Ossify', 'Golem hits stun for 0.5s', function () { return { behaviors: { maulstun: 1 } }; }, ['clay']);
   node('necro', 'gravespeed', 'bone', 3, 3, 'Grave Rush', '+10% summon speed per rank toward enemies under half life, and +8% damage against them.', function (r) { return { bloodscent: 10 * r, execute: 8 * r }; });
   node('necro', 'deadrise', 'bone', 4, 1, 'Dead Rise', 'KEYSTONE: skeleton cap doubled and skeletons cost half. A called skeleton fades back to the roster after 30s. Same bones. No Den time.', function () { return { behaviors: { deadrise: 1 } }; }, ['spearhead']);
@@ -309,7 +309,7 @@
 
   // Stormbinder. Flame is the blast and the hydra. Frost is the monolith. Arcane is mana, form and the Chorus.
   node('sorc', 'kindle', 'flame', 1, 3, 'Kindle', '+1 ember hound cap per rank, and +5% ember damage', function (r) { return { emberCap: r, emberDmg: 5 * r }; });
-  node('sorc', 'pyre', 'flame', 1, 5, 'Pyre', '+3 Fireball damage per rank. This is your weapon.', function (r) { return { boltDmg: 3 * r }; });
+  node('sorc', 'pyre', 'flame', 1, 5, 'Pyre', '+3 Fireball damage per rank. This is your weapon. Each rank returns 2% of the burst as life.', function (r) { return { boltDmg: 3 * r, lifeLeech: 2 * r }; });
   node('sorc', 'cinders', 'flame', 2, 3, 'Cinders', '+8% ember damage per rank. Ranks also feed the fireball.', function (r) { return { emberDmg: 8 * r }; }, ['kindle']);
   node('sorc', 'brood', 'flame', 2, 3, 'Brood', '+12% hydra damage per rank. Rank 3 adds a hydra. Each rank also feeds the fireball.', function (r) { return { hydraDmg: 12 * r, hydraCap: r >= 3 ? 1 : 0 }; }, ['pyre']);
   node('sorc', 'inferno', 'flame', 3, 1, 'Inferno', 'Fireball bursts wider and the burn lasts harder', function () { return { behaviors: { meteor: 1 }, splash: 24, burnDmg: 40 }; }, ['cinders']);
@@ -337,7 +337,7 @@
 
   // Oathbound. Zeal is the weapon. Aegis is the wall. Oath is the banner, the curse and the Chorus.
   node('pala', 'linecall', 'zeal', 1, 2, 'Call the Line', '+1 squire cap per rank, and +6% squire damage. A short line, not a horde.', function (r) { return { squireCap: r, squireDmg: 6 * r }; });
-  node('pala', 'zeal', 'zeal', 1, 5, 'Zeal', '+4 Zeal damage per rank. Rank 2, 3 and 4 each add a strike. You are in the swing.', function (r) { return { zealDmg: 4 * r, zealStrikes: Math.min(3, Math.max(0, r - 1)) }; });
+  node('pala', 'zeal', 'zeal', 1, 5, 'Zeal', '+4 Zeal damage per rank. Rank 2, 3 and 4 each add a strike. Crushing Blow +3% per rank against elites, champions and bosses.', function (r) { return { zealDmg: 4 * r, zealStrikes: Math.min(3, Math.max(0, r - 1)), crush: 3 * r }; });
   node('pala', 'shieldwall', 'zeal', 2, 3, 'Shield Wall', 'Squires deal more for each other squire alive, and each rank feeds Howl.', function (r) { return { packTactics: 3 * r }; }, ['linecall']);
   node('pala', 'bloodprice', 'zeal', 3, 3, 'Blood Price', 'Zeal returns 2 life per rank.', function (r) { return { zealLeech: 2 * r }; });
   node('pala', 'sacrifice', 'zeal', 4, 1, 'Sacrifice', 'KEYSTONE: the first strike hits twice as hard and costs 4 life. It will not drop you.', function () { return { behaviors: { sacrifice: 1 } }; }, ['zeal']);
@@ -362,7 +362,7 @@
 
   // Skymark. The javelin is the weapon. The valkyrie is the wall. Sky is the mark, the form and the Chorus.
   node('amaz', 'skymuster', 'javelin', 1, 2, 'Call the Sisters', '+1 spear sister cap per rank, and +6% sister damage. A pair, not a horde.', function (r) { return { sisterCap: r, sisterDmg: 6 * r }; });
-  node('amaz', 'fury', 'javelin', 1, 5, 'Lightning Fury', '+4 javelin damage per rank. Rank 2, 3 and 4 each add a lightning fork. The throw is the weapon.', function (r) { return { furyDmg: 4 * r, furyForks: Math.min(3, Math.max(0, r - 1)) }; });
+  node('amaz', 'fury', 'javelin', 1, 5, 'Lightning Fury', '+4 javelin damage per rank. Rank 2, 3 and 4 each add a lightning fork. Deadly Strike +4% per rank. The throw is the weapon.', function (r) { return { furyDmg: 4 * r, furyForks: Math.min(3, Math.max(0, r - 1)), deadly: 4 * r }; });
   node('amaz', 'skywing', 'javelin', 2, 3, 'Paired Spears', 'Sisters deal more for each other sister alive, and each rank feeds Howl.', function (r) { return { packTactics: 3 * r }; }, ['skymuster']);
   node('amaz', 'charged', 'javelin', 3, 3, 'Charged Strike', 'A landed javelin returns 2 life per rank.', function (r) { return { furyLeech: 2 * r }; });
   node('amaz', 'stormstrike', 'javelin', 4, 1, 'Storm Strike', 'KEYSTONE: the lightning hops a second time, and a forked body is Marked.', function () { return { behaviors: { stormstrike: 1 } }; }, ['fury']);
@@ -387,7 +387,7 @@
 
   // Warbound. Whirlwind is the weapon. The shout is the pack. Iron is the form and the Chorus.
   node('barb', 'warband', 'frenzy', 1, 2, 'Warband', '+1 berserker cap per rank, and +6% berserker damage. Two axes, not a horde.', function (r) { return { berzerkCap: r, berzerkDmg: 6 * r }; });
-  node('barb', 'whirl', 'frenzy', 1, 5, 'Whirlwind', '+4 spin damage per rank. A second spin inside the window hits harder. Rank 2, 3 and 4 each allow one more frenzy stack.', function (r) { return { whirlDmg: 4 * r, frenzyMax: Math.min(3, Math.max(0, r - 1)) }; });
+  node('barb', 'whirl', 'frenzy', 1, 5, 'Whirlwind', '+4 spin damage per rank. A second spin inside the window hits harder. Rank 2, 3 and 4 each allow one more frenzy stack. Deadly Strike +4% per rank.', function (r) { return { whirlDmg: 4 * r, frenzyMax: Math.min(3, Math.max(0, r - 1)), deadly: 4 * r }; });
   node('barb', 'warline', 'frenzy', 2, 3, 'Paired Axes', 'Berserkers deal more for each other berserker alive, and each rank feeds Howl.', function (r) { return { packTactics: 3 * r }; }, ['warband']);
   node('barb', 'bloodwhirl', 'frenzy', 3, 3, 'Blood Whirl', 'A landed spin returns 2 life per rank.', function (r) { return { whirlLeech: 2 * r }; });
   node('barb', 'berserk', 'frenzy', 4, 1, 'Berserk', 'KEYSTONE: at three frenzy stacks the spin hits twice.', function () { return { behaviors: { berserk: 1 } }; }, ['whirl']);

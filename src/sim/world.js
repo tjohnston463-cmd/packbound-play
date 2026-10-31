@@ -135,9 +135,13 @@
     if (src && src.vampiric && !src.dead && amount > 0) src.hp = Math.min(src.maxHp, src.hp + amount * 0.2); // Vampiric elites
     var leech = world.mods.stats.packLeech;
     if (leech && src && src.team === 0 && src.kind === 'summon' && !src.dead && def.team === 1 && amount > 0) src.hp = Math.min(src.maxHp, src.hp + amount * leech / 100); // of Hunger
-    // amount is what reached life (the number on screen); absorbed is what a shield ate
-    PB.Events.emit(world.events, h.crit ? 'crit' : 'hit', { src: att.id, dst: def.id, amount: amount, absorbed: soak, x: def.x, y: def.y, srcKind: att.kind, dstKind: def.kind, rules: h.rules });
-    if (h.crit) hitStop(world, 40);
+    if (PB.Terror) PB.Terror.bite(world, att, def, h); // Deadly, Crushing Blow, and leech on your own hits
+    var shown = h.taken - (h.crush || 0);
+    // shown is the strike (gold when it is deadly). Crush is its own number. Absorbed is what a shield ate.
+    PB.Events.emit(world.events, h.crit ? 'crit' : 'hit', { src: att.id, dst: def.id, amount: shown, absorbed: soak, x: def.x, y: def.y, srcKind: att.kind, dstKind: def.kind, rules: h.rules, deadly: !!h.deadly, crush: h.crush || 0 });
+    if ((h.leechLife || 0) + (h.leechSpirit || 0) >= 1 && world.player) PB.Events.emit(world.events, 'leech', { src: att.id, dst: world.player.id, amount: (h.leechLife || 0) + (h.leechSpirit || 0), x: world.player.x, y: world.player.y, dstKind: 'player' });
+    if (h.crit || h.deadly) hitStop(world, 40);
+    if (h.crush) hitStop(world, 50);
     PB.Progression.onHit(world, att, def, h);
     PB.AIFusions.onHurt(world, att, def, h);
     if (att.team === 0 && def.team === 1 && att.tags && att.tags.length && !def.dead) PB.Chorus.onHit(world, att, def, h);

@@ -204,13 +204,15 @@
         case 'crit':
           if (ev.dot) return null;
           if (ev.dstKind === 'player') return playAt('druidHit', ev.x);
-          if (ev.srcKind === 'player') return playAt('whip', ev.x);
+          if (ev.srcKind === 'player') return playAt(ev.deadly || ev.crush ? 'crit' : 'whip', ev.x, ev.crush ? { pitch: 0.72, gain: 0.8 } : undefined);
           return playAt(ev.type === 'crit' ? 'crit' : 'bite', ev.x, { gain: ev.dstKind === 'summon' ? 0.6 : 1 });
         case 'maul': return playAt('maul', ev.x);
         case 'kill':
           if (ev.team === 0) return playAt('summonDie', ev.x, { root: KEY[ev.unit] || 220 });
           return playAt(ev.elite || ev.boss ? 'eliteDeath' : 'death', ev.x);
         case 'summon': return KEY[ev.unit] ? playAt('summon_' + ev.unit, ev.x) : null;
+        case 'leech': return null;
+        case 'terror': return play('phase');
         case 'bonespear': return playAt('whip', ev.x, { pitch: 1.35 });
         case 'fireball': return playAt('maul', ev.x, { pitch: 1.7, gain: 0.55 });
         case 'zeal': return playAt('maul', ev.x, { pitch: 0.82, gain: 0.7 });

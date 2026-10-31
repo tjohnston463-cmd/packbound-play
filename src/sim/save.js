@@ -18,7 +18,7 @@
       currency: { moonstones: 0, dust: 0 },
       belt: { life: 2, spirit: 2, moon: 0 },
       runes: PB.Runes.emptyPouch(), cubeRolls: 0, gambleRolls: 0,
-      progress: { unlockedZone: 0, cleared: [], moon: 0, bestMoon: 0, moonCleared: {} }, // moonCleared: Moon tier -> zones cleared at it
+      progress: { unlockedZone: 0, cleared: [], moon: 0, bestMoon: 0, moonCleared: {}, terrorCall: null }, // moonCleared: Moon tier -> zones cleared at it. terrorCall moves the Terror for one Moon.
       echoes: [],
       codex: { fusions: {}, uniques: {}, enemies: {} },
       settings: { volume: 0.7, music: 0.4, shake: 1, numbers: true },
@@ -151,6 +151,7 @@
     if (!isInt(s.gambleRolls, 0, 1e9)) return 'gamble';
     if (!isObj(g) || !isInt(g.unlockedZone, 0, PB.ZONES.length - 1) || !Array.isArray(g.cleared) || !isInt(g.moon, 0, 1000) || !isInt(g.bestMoon, 0, 1000)) return 'progress';
     if (!g.cleared.every(function (z) { return isInt(z, 0, PB.ZONES.length - 1); })) return 'progress';
+    if (g.terrorCall != null && (!isObj(g.terrorCall) || !isInt(g.terrorCall.moon, 0, 1000) || !isInt(g.terrorCall.zone, 0, PB.ZONES.length - 1))) return 'progress';
     if (!isObj(g.moonCleared) || !Object.keys(g.moonCleared).every(function (k) {
       var zs = g.moonCleared[k];
       return /^\d+$/.test(k) && Array.isArray(zs) && zs.every(function (z) { return isInt(z, 0, PB.ZONES.length - 1); });

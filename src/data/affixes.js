@@ -41,7 +41,11 @@
     { id: 'of_haste',   kind: 'stat', stat: 'packAtkSpd',  group: 's_aspd',   slots: ['staff', 'charm', 'mask'], ilvl: 3, name: 'of Haste',      v: [5, 15],  text: '+{v}% summon attack speed' },
     { id: 'of_vigor',   kind: 'stat', stat: 'packHp',      group: 's_hp',     slots: ['pelt', 'talisman', 'charm'], ilvl: 1, name: 'of Vigor',  v: [8, 25],  text: '+{v}% summon life' },
     { id: 'of_command', kind: 'stat', stat: 'cmdCdr',      group: 's_cdr',    slots: ['staff', 'mask'],          ilvl: 5, name: 'of Command',    v: [5, 15],  text: '{v}% faster command cooldowns' },
-    { id: 'of_finding', kind: 'stat', stat: 'magicFind',   group: 's_mf',     slots: ['mask', 'charm', 'talisman'], ilvl: 1, name: 'of Finding',  v: [10, 40], text: '+{v}% chance of better loot' }
+    { id: 'of_finding', kind: 'stat', stat: 'magicFind',   group: 's_mf',     slots: ['mask', 'charm', 'talisman'], ilvl: 1, name: 'of Finding',  v: [10, 40], text: '+{v}% chance of better loot' },
+    { id: 'of_crush',   kind: 'stat', stat: 'crush',       group: 's_crush',  slots: ['staff', 'pelt', 'charm'], ilvl: 6, name: 'of Crushing', v: [8, 18], text: 'Your hits crush {v}% of an elite, champion or boss\'s current life' },
+    { id: 'of_strike',  kind: 'stat', stat: 'deadly',      group: 's_deadly', slots: ['staff', 'mask', 'charm'], ilvl: 5, name: 'of Striking', v: [8, 20], text: '{v}% chance your hits strike twice as hard' },
+    { id: 'of_vein',    kind: 'stat', stat: 'lifeLeech',   group: 's_vein',   slots: ['staff', 'pelt', 'charm'], ilvl: 4, name: 'of the Vein', v: [2, 6], text: 'Your hits return {v}% of damage as life' },
+    { id: 'of_well',    kind: 'stat', stat: 'spiritLeech', group: 's_well',   slots: ['mask', 'talisman', 'charm'], ilvl: 4, name: 'of the Well', v: [2, 6], text: 'Your hits return {v}% of damage as Spirit' }
   ];
   PB.AFFIX_BY_ID = {};
   PB.AFFIXES.forEach(function (a) { PB.AFFIX_BY_ID[a.id] = a; });

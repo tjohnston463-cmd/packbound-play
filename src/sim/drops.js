@@ -33,6 +33,8 @@
       if (o.elite) p = 0.22;
       if (quarry) p = o.elite ? 0.32 : 0.14;
       if (o.farm && p) p *= 1.5;
+      if (o.terror && p) p = Math.min(0.9, p * 1.45);
+      if (!o.boss && o.champion && !o.elite) p = Math.max(p, 0.1);
       if (p > 0 && rng.chance(Math.min(0.85, p))) n = 1;
     }
     var ilvl = dropIlvl(world), i;
@@ -42,8 +44,9 @@
   function opts(world, def) {
     var save = world.save;
     var farm = !!(world.dir && world.dir.state === 'victory');
-    return { magicFind: (world.mods.stats.magicFind || 0) + (farm ? 100 : 0) + PB.Shrines.magicFind(world), moon: save ? save.progress.moon : 0,
-             elite: !!(def.elite && def.elite.length), boss: !!def.boss, farm: farm };
+    var terror = !!(world.dir && world.dir.terror);
+    return { magicFind: (world.mods.stats.magicFind || 0) + (farm ? 100 : 0) + (terror && PB.Terror ? PB.Terror.MF : 0) + PB.Shrines.magicFind(world), moon: save ? save.progress.moon : 0,
+             elite: !!(def.elite && def.elite.length), boss: !!def.boss, farm: farm, terror: terror, champion: !!def.champion };
   }
 
   // A kill rolls the zone's item level, not the current wave's. Wave 1 can drop what the zone can drop.
@@ -59,10 +62,10 @@
     if (!save || def.kind !== 'enemy' || def.noLoot) return;
     var rng = world.rng.loot, o = opts(world, def), ilvl = dropIlvl(world), n = 0, i;
     if (o.boss) {
-      n = rng.int(BOSS_ITEMS[0], BOSS_ITEMS[1]);
+      n = rng.int(BOSS_ITEMS[0], BOSS_ITEMS[1]) + (o.terror ? 1 : 0);
       save.currency.moonstones += BOSS_MOON;
       PB.Events.emit(world.events, 'moonstone', { n: BOSS_MOON, x: def.x, y: def.y });
-    } else if (rng.chance((o.elite ? ELITE_CHANCE : CHANCE) * (o.farm ? 2 : 1) * ((def.lashed || 0) > 0 ? 2 : 1))) n = 1;
+    } else if (rng.chance((o.elite ? ELITE_CHANCE : o.champion ? 0.35 : CHANCE) * (o.farm ? 2 : 1) * ((def.lashed || 0) > 0 ? 2 : 1))) n = 1;
     if (!o.boss && world.dir && PB.Waves.isQuarry(world.dir, def.type)) {
       save.currency.dust = (save.currency.dust || 0) + 1;
       PB.Events.emit(world.events, 'dust', { n: 1, x: def.x, y: def.y });

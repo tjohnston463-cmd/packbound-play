@@ -72,6 +72,8 @@
       'Grove sets drop in green. Two pieces wake a bonus. Three pieces change the pack. A set staff cannot hold a rune word. First Howl and the Green Wreath both want the staff.',
       'Each wave grows a grove shrine. Walk into it. Combat, Moon and Den help. Greed pays and you bruise. A red Monster Shrine turns the wood, and the next kill drops a rune.',
       'At camp, Gamble spends Dust on a magic, rare, set or unique. Never a plain piece. The roll follows the deepest wood you have opened, and the Moon.',
+      'After your first clear, one open wood is the Terror. It is marked in red. Prey is tougher and drops better. Call the Terror onward for 4 Dust.',
+      'Your own hits can crush a tough body, strike twice, and return life or Spirit. Zeal, the claw, the spin, the javelin, the spear and the fireball each feed one of those. Gear can too.',
       'The belt holds life flasks, spirit flasks and Moonflasks. They drop in the wood and do not fill the bag. A boss always leaves a Moonflask. Camp sells them for Dust. A heavy hit staggers your step until you drink.',
       'When the last summon of a type falls, it waits in the Den.'
     ];

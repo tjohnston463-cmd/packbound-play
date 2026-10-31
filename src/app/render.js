@@ -343,12 +343,17 @@
   // view keeps its full-strength marks.
   function drawMarks(g, e) {
     var top = e.y - (e.flying ? 10 : 0) - e.r * 1.25;
+    if (e.champion) ring(g, e.x, e.y + e.r * 0.2, e.r + 9, '#e8a040', 2, [5, 3]);
     if (e.elite && e.elite.length) ring(g, e.x, e.y + e.r * 0.2, e.r + 6, ELITE_HALO[e.elite[0]] || '#fff', 2);
     var world = R.world, quarry = world && e.team === 1 && PB.Waves.isQuarry(world.dir, e.type);
     if (quarry) {
       ring(g, e.x, e.y + e.r * 0.2, e.r + 11, '#ffd678', 2, [4, 3]);
       g.font = '11px ' + SERIF; g.textAlign = 'center'; g.fillStyle = '#ffd678';
       g.fillText('quarry', e.x, top - 16); g.textAlign = 'left';
+    }
+    if (e.champion) {
+      g.font = '11px ' + SERIF; g.textAlign = 'center'; g.fillStyle = '#e8a040';
+      g.fillText('champion', e.x, top - (quarry ? 30 : 16)); g.textAlign = 'left';
     }
     if (e.elite && e.elite.length) {
       var names = [], ei;

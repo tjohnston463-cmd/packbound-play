@@ -158,6 +158,7 @@
     var save = G.save, g2 = save.progress, C = UI.C;
     UI.dim(g, 0.7);
     UI.panel(g, 90, 110, LW - 180, 470, { title: 'The Hunt' });
+    var terrorZ = PB.Terror ? PB.Terror.zone(save, S.moon) : -1;
     var xs = [], y = 330;
     for (var i = 0; i < PB.ZONES.length; i++) xs.push(200 + i * 220);
     g.strokeStyle = 'rgba(232,135,58,0.5)'; g.lineWidth = 3; g.setLineDash([8, 8]);
@@ -165,11 +166,12 @@
     PB.ZONES.forEach(function (z, i) {
       var yy = y + (i % 2 ? -40 : 30), open = i <= g2.unlockedZone, done = (g2.moonCleared[S.moon] || []).indexOf(i) >= 0; // cleared at this Moon tier
       g.fillStyle = open ? z.palette[1] || '#2c3a26' : '#1a1a1a'; g.beginPath(); g.arc(xs[i], yy, 44, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = done ? C.gold : open ? C.ember : 'rgba(120,120,120,0.5)'; g.lineWidth = 3; g.stroke();
+      var terrorHere = i === terrorZ;
+      g.strokeStyle = terrorHere ? '#e23a32' : done ? C.gold : open ? C.ember : 'rgba(120,120,120,0.5)'; g.lineWidth = terrorHere ? 5 : 3; g.stroke();
       var wants = (PB.ENEMIES[PB.Waves.quarry(i, S.moon)] || {}).name || '';
       if (UI.button(g, 'zone-' + i, { x: xs[i] - 90, y: yy + 54, w: 180, h: 46 }, z.name, { disabled: !open, size: 14,
         reason: 'Clear ' + (PB.ZONES[i - 1] ? PB.ZONES[i - 1].name : 'the zone before') + ' first',
-        sub: (done ? 'cleared · ' : '') + 'wants ' + wants + ' · ' + ['deaths slow', 'deaths burn', 'deaths chill', 'deaths spark', 'deaths poison'][i] + ' · ' + PB.BOSSES[z.boss].name })) {
+        sub: (terrorHere ? 'TERROR · ' : '') + (done ? 'cleared · ' : '') + 'wants ' + wants + ' · ' + ['deaths slow', 'deaths burn', 'deaths chill', 'deaths spark', 'deaths poison'][i] + ' · ' + PB.BOSSES[z.boss].name })) {
         g2.moon = S.moon; S.mode = 'camp';
         PB.Game.startZone(i, S.moon);
       }
@@ -179,7 +181,7 @@
     var atMoon = (g2.moonCleared[S.moon] || []).length;
     UI.text(g, 'Moon tier ' + S.moon + (mm ? ' · ' + atMoon + ' of 5 cleared' : '  (Moon tiers open after the fifth zone)'), LW / 2, 190, UI.font(16, true), mm ? C.moon : C.dim, 'center');
     var sc = PB.Waves.scale(0, 1, S.moon);
-    UI.text(g, 'Enemy life ' + Math.round(sc.hp * 100) + '% · damage ' + Math.round(sc.dmg * 100) + '%' + (S.moon ? ' · uniques step up' : ''), LW / 2, 248, UI.font(13), C.dim, 'center');
+    UI.text(g, 'Enemy life ' + Math.round(sc.hp * 100) + '% · damage ' + Math.round(sc.dmg * 100) + '%' + (S.moon ? ' · uniques step up' : ''), LW / 2, 236, UI.font(13), C.dim, 'center');
     if (mm) {
       if (UI.button(g, 'moon-down', { x: LW / 2 - 180, y: 182, w: 40, h: 30 }, '−', { disabled: S.moon <= 0, reason: 'Moon 0 is the base tier' })) S.moon--;
       // mm = best Moon cleared + 1, so the next tier opens by clearing the Unmaker at mm itself.
@@ -187,8 +189,15 @@
       if (UI.button(g, 'moon-up', { x: LW / 2 + 140, y: 182, w: 40, h: 30 }, '+', { disabled: S.moon >= mm, reason: need })) S.moon++;
       UI.text(g, need, LW / 2, 218, UI.font(13), C.dim, 'center');
     }
-    UI.text(g, 'Five waves from the edges, then the boss. A fall keeps every level, item and summon.', LW / 2, 520, UI.font(13), C.dim, 'center');
-    if (UI.button(g, 'map-back', { x: LW / 2 - 70, y: 540, w: 140, h: 30 }, 'Back', { tone: 'moss', size: 13 })) S.mode = 'camp';
+    var terrorLine = terrorZ < 0 ? 'Clear a wood once. Then one open wood is the Terror: harder prey, better drops.' : PB.ZONES[terrorZ].name + ' is the Terror this Moon. It hits harder and pays better.';
+    UI.text(g, terrorLine, LW / 2, 468, UI.font(13), terrorZ < 0 ? C.dim : '#e07060', 'center');
+    if (terrorZ >= 0 && UI.button(g, 'terror-call', { x: LW / 2 - 150, y: 484, w: 300, h: 26 }, 'Call the Terror onward · ' + PB.Terror.CALL_COST + ' Dust', { size: 12, tone: 'ember' })) {
+      var called = PB.Terror.callNext(save, S.moon);
+      if (called.ok) { PB.Game.toast('The Terror moves to ' + PB.ZONES[called.zone].name); PB.Game.afterSaveChange(); }
+      else UI.flashReason(called.reason === 'dust' ? 'Need ' + PB.Terror.CALL_COST + ' Dust' : called.reason === 'one' ? 'Only one wood is open' : 'Clear a wood first', LW / 2, 476);
+    }
+    UI.text(g, 'Five waves from the edges, then the boss. A fall keeps every level, item and summon.', LW / 2, 522, UI.font(13), C.dim, 'center');
+    if (UI.button(g, 'map-back', { x: LW / 2 - 70, y: 538, w: 140, h: 28 }, 'Back', { tone: 'moss', size: 13 })) S.mode = 'camp';
   }
 
   function drawShrine(g, UI, G) {

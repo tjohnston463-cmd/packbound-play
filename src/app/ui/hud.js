@@ -241,12 +241,12 @@
     var UI = PB.UI, ds = PB.Director.status(world);
     UI.text(g, 'Esc: pause & help', 12, 10, UI.font(12), UI.C.faint);
     if (!ds) return;
-    var head = ds.name + (ds.moon ? ' · Moon ' + ds.moon : '') + ' · ' + (ds.wave > PB.Waves.WAVES_PER_ZONE ? 'Boss' : 'Wave ' + ds.wave + ' / ' + PB.Waves.WAVES_PER_ZONE);
-    if (ds.state === 'victory') head = ds.name + (ds.moon ? ' · Moon ' + ds.moon : '') + ' · Cleared · Esc, then Leave, when you are done · the wood still hunts';
+    var head = (ds.terror ? 'TERROR · ' : '') + ds.name + (ds.moon ? ' · Moon ' + ds.moon : '') + ' · ' + (ds.wave > PB.Waves.WAVES_PER_ZONE ? 'Boss' : 'Wave ' + ds.wave + ' / ' + PB.Waves.WAVES_PER_ZONE);
+    if (ds.state === 'victory') head = (ds.terror ? 'TERROR · ' : '') + ds.name + (ds.moon ? ' · Moon ' + ds.moon : '') + ' · Cleared · Esc, then Leave, when you are done · the wood still hunts';
     else if (ds.state === 'lull') head += ' · Lull ' + Math.ceil(ds.lull) + 's (eat, loot' + (world.shrine ? ', T at the shrine' : '') + ')';
     else if (ds.state === 'wave' && !ds.boss) head += ' · ' + ds.left + ' left';
     g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6;
-    UI.text(g, head, LW / 2, 10, UI.font(17, true), '#e8d8a8', 'center'); g.restore();
+    UI.text(g, head, LW / 2, 10, UI.font(17, true), ds.terror ? '#e07060' : '#e8d8a8', 'center'); g.restore();
     if (!(ds.boss && !ds.boss.dead)) {
       var pulse = PB.Director.huntLine(world);
       if (pulse) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, pulse, LW / 2, 30, UI.font(13), '#cbb98a', 'center'); g.restore(); }
@@ -259,6 +259,8 @@
       var py = ds.boss && !ds.boss.dead ? 80 : 48; // the boss bar owns the line under the title
       g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, pts, LW / 2, py, UI.font(14, true), '#ffd678', 'center'); g.restore();
     }
+    var bite = world.mods && PB.Terror ? PB.Terror.biteLine(world.mods.stats) : '';
+    if (bite) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, bite, 12, 90, UI.font(12), '#ffb070'); g.restore(); }
     var setLine = world.save && PB.Sets ? PB.Sets.line(world.save) : '';
     if (setLine) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, setLine, 12, 108, UI.font(12), '#8fe07a'); g.restore(); }
     if (world.boon) {

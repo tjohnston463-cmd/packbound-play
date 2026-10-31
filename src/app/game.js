@@ -288,10 +288,12 @@
     else if (e.type === 'thrall-break') toast('Rally broke the Thrall');
     else if (e.type === 'mimic') toast('The Unmaker copies ' + e.name);
     else if (e.type === 'phase') toast((PB.BOSSES[e.unit] || {}).name + ' grows desperate');
+    else if (e.type === 'terror') toast('The Terror has ' + e.name + '. It hits harder. It pays better.');
     else if (e.type === 'wave') {
       var quarryName = w.dir ? ((PB.ENEMIES[PB.Waves.quarry(w.dir.zone, w.dir.moon)] || {}).name || '') : '';
-      G.waveBanner = e.boss ? { text: 'The boss comes', sub: (PB.BOSSES[PB.ZONES[w.dir.zone].boss] || {}).name, t: 0, life: 2.6 }
-                            : { text: 'Wave ' + e.wave, sub: e.count + ' enemies · the wood wants ' + quarryName, t: 0, life: 2.2 };
+      var terror = w.dir && w.dir.terror;
+      G.waveBanner = e.boss ? { text: terror ? 'The Terror\'s boss' : 'The boss comes', sub: (PB.BOSSES[PB.ZONES[w.dir.zone].boss] || {}).name, t: 0, life: 2.6 }
+                            : { text: (terror ? 'Terror · ' : '') + 'Wave ' + e.wave, sub: e.count + ' enemies · the wood wants ' + quarryName, t: 0, life: 2.2 };
     }
     else if (e.type === 'wave-clear') {
       var remind = w.save ? PB.Skills.pointsLeft(w.save.player) : 0;

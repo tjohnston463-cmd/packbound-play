@@ -21,9 +21,10 @@
   }
 
   // The wave's spawn list (Waves.buildWave, verified) plus the hunters: about a quarter of each wave goes for the druid.
-  function spawnList(zone, wave, moon, rng) {
+  function spawnList(zone, wave, moon, rng, terror) {
     var list = PB.Waves.buildWave(zone, wave, moon, rng).spawns;
     list.forEach(function (sp) { sp.hunter = !sp.boss && rng.chance(HUNTER_SHARE); });
+    if (terror && PB.Terror) PB.Terror.thicken(list, wave);
     return list;
   }
 
@@ -31,9 +32,11 @@
     var rng = world.rng.spawn, p = world.player;
     world.obstacles = placeObstacles(world, rng); world.zoneIdx = zone;
     p.x = world.width / 2; p.y = world.height / 2;
-    world.dir = { zone: zone, moon: moon || 0, wave: 0, state: 'wave', t: 0, idx: 0, list: [], scale: null, bossId: 0, kills: 0 };
+    var moonN = moon || 0, terror = !!(PB.Terror && PB.Terror.active(world.save, zone, moonN));
+    world.dir = { zone: zone, moon: moonN, wave: 0, state: 'wave', t: 0, idx: 0, list: [], scale: null, bossId: 0, kills: 0, terror: terror };
     if (world.save) PB.Roster.spawnBonded(world, p.x, p.y + 40);
-    PB.Events.emit(world.events, 'zone', { zone: zone, moon: moon || 0, name: PB.ZONES[zone].name });
+    PB.Events.emit(world.events, 'zone', { zone: zone, moon: moonN, name: PB.ZONES[zone].name, terror: terror });
+    if (terror) PB.Events.emit(world.events, 'terror', { zone: zone, moon: moonN, name: PB.ZONES[zone].name });
     startWave(world, 1);
     return world.dir;
   }
@@ -42,8 +45,8 @@
     var d = world.dir;
     d.wave = wave; d.state = 'wave'; d.t = 0; d.idx = 0; d.bossId = 0;
     d.scale = PB.Waves.scale(d.zone, wave, d.moon);
-    d.list = override || spawnList(d.zone, wave, d.moon, world.rng.spawn);
-    world.ilvl = d.scale.ilvl;
+    d.list = override || spawnList(d.zone, wave, d.moon, world.rng.spawn, d.terror);
+    world.ilvl = d.scale.ilvl + (d.terror && PB.Terror ? PB.Terror.ILVL : 0);
     if (wave >= 4 && !world.shrine) openShrine(world);
     PB.Shrines.onWave(world);
     PB.Events.emit(world.events, 'wave', { wave: wave, zone: d.zone, boss: wave > PB.Waves.WAVES_PER_ZONE, count: d.list.length });
@@ -76,9 +79,11 @@
     var el = sp.elite && sp.elite.length ? sp.elite.slice() : [];
     if (d && (d.moon || 0) >= 1 && !sp.boss && !el.length && PB.Waves.isQuarry(d, sp.enemy)) el = [PB.ELITE_MODS[Math.floor(world.rng.spawn.next() * PB.ELITE_MODS.length)].id];
     var em = el.length ? 1 : 0;
-    var hp = Math.round(def.hp * s.hp * (em ? ELITE_HP : 1)), dmg = def.dmg * s.dmg * (em ? ELITE_DMG : 1);
-    var o = { hp: hp, maxHp: hp, dmg: [dmg, dmg], elite: el, spawnX: x, spawnY: y, emergeT: EMERGE, frozenT: EMERGE, hunter: !!sp.hunter,
-              xp: Math.round((def.xp || 0) * (em ? ELITE_XP : 1)) };
+    var terror = d && d.terror && PB.Terror;
+    var hp = Math.round(def.hp * s.hp * (terror ? PB.Terror.HP : 1) * (em ? ELITE_HP : 1) * (sp.champion ? PB.Terror.CHAMP_HP : 1));
+    var dmg = def.dmg * s.dmg * (terror ? PB.Terror.DMG : 1) * (em ? ELITE_DMG : 1) * (sp.champion ? PB.Terror.CHAMP_DMG : 1);
+    var o = { hp: hp, maxHp: hp, dmg: [dmg, dmg], elite: el, champion: !!sp.champion, spawnX: x, spawnY: y, emergeT: EMERGE, frozenT: EMERGE, hunter: !!sp.hunter,
+              xp: Math.round((def.xp || 0) * (em ? ELITE_XP : 1) * (sp.champion ? 2 : 1)) };
     if (extra) for (var k in extra) o[k] = extra[k];
     var e = PB.World.spawn(world, 'enemy', sp.enemy, x, y, o);
     if (!e) return null;
@@ -89,6 +94,7 @@
       if (el.indexOf('vampiric') >= 0) e.vampiric = true;
       if (el.indexOf('packbane') >= 0) e.packbane = true;
     }
+    if (sp.champion) e.r = Math.round(e.r * 1.12);
     if (e.boss && d) d.bossId = e.id;
     return e;
   }
@@ -132,7 +138,7 @@
     var quarry = PB.Waves.quarry(d.zone, d.moon), n;
     for (n = 0; n < FARM_N; n++) {
       if (world.counts.enemy >= PB.Waves.CONCURRENT_CAP) break;
-      var sp = { enemy: quarry, boss: false, elite: [], edge: n % 4, hunter: true };
+      var sp = { enemy: quarry, boss: false, elite: [], edge: n % 4, hunter: true, champion: !!(d.terror && n === 0) };
       var at = edgePoint(world, sp.edge, world.rng.spawn);
       spawnEnemy(world, sp, at.x, at.y);
     }
@@ -170,7 +176,7 @@
     d.t += dt;
     if (d.state === 'lull') { if (d.t >= LULL - EPS) startWave(world, d.wave + 1); return; }
     while (d.idx < d.list.length && d.list[d.idx].delay <= d.t + EPS && world.counts.enemy < PB.Waves.CONCURRENT_CAP) {
-      var sp = d.list[d.idx++], at = edgePoint(world, sp.edge, world.rng.spawn);
+      var sp = d.list[d.idx++], at = sp.pinned ? { x: sp.x, y: sp.y } : edgePoint(world, sp.edge, world.rng.spawn);
       spawnEnemy(world, sp, at.x, at.y);
     }
     if (d.bossId) {
@@ -196,7 +202,7 @@
     if (!d) return null;
     var left = world.counts.enemy + Math.max(0, d.list.length - d.idx);
     return { zone: d.zone, name: PB.ZONES[d.zone].name, wave: d.wave, state: d.state, left: left, lull: d.state === 'lull' ? Math.max(0, LULL - d.t) : 0,
-             boss: d.bossId ? world.byId[d.bossId] || null : null, moon: d.moon };
+             boss: d.bossId ? world.byId[d.bossId] || null : null, moon: d.moon, terror: !!d.terror };
   }
 
   PB.Director = { start: start, startWave: startWave, update: update, spawnEnemy: spawnEnemy, spawnList: spawnList, onEnemyDeath: onEnemyDeath,

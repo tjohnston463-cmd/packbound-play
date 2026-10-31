@@ -193,8 +193,12 @@
     extraEvent(j, ev, world);
     var p = world && world.player;
     switch (ev.type) {
+      case 'leech':
+        number(j, ev, false, 'dot');
+        return;
       case 'hit':
       case 'crit':
+        if (ev.crush > 0) addNumber(j, ev.dst, ev.x, ev.y - 12, ev.crush, false, j.time, 'crush');
         if (ev.dot) { number(j, ev, false, 'dot'); return; }
         if (ev.absorbed > 0) ring(j, ev.x, ev.y, 8, 22, 0.2, C.mote, 2); // a shield took some or all of it
         if (!(ev.amount > 0)) { j.flashes.set(ev.dst, 0.04); return; } // fully absorbed: no number
@@ -204,10 +208,11 @@
           number(j, ev, false, 'hurt');
           return;
         }
-        if (ev.srcKind === 'player') { // Thornlash
-          j.flashes.set(ev.dst, 0.06); addTrauma(j, 0.05);
-          emit(j, ev.x, ev.y, 6, C.thorn, { speed: 190, life: 0.35, size: 3 });
-          number(j, ev, ev.type === 'crit', 'hit');
+        if (ev.srcKind === 'player') { // the hunter's own swing
+          j.flashes.set(ev.dst, ev.deadly ? 0.1 : 0.06); addTrauma(j, ev.deadly || ev.crush ? 0.14 : 0.05);
+          emit(j, ev.x, ev.y, ev.deadly ? 10 : 6, ev.deadly ? C.gold : C.thorn, { speed: ev.deadly ? 240 : 190, life: 0.35, size: ev.deadly ? 4 : 3 });
+          if (ev.crush) ring(j, ev.x, ev.y, 8, 36, 0.22, 0xff7a3a, 3);
+          number(j, ev, ev.type === 'crit' || !!ev.deadly, 'hit');
           return;
         }
         if (ev.type === 'crit') {
