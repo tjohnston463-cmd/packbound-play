@@ -162,6 +162,14 @@
     }
   }
 
+  // Chill, slow, and a Monster Shrine. Flee keeps its own slow rule: slow already stopped the body before this.
+  function footSpeed(world, e, fleeing) {
+    var s = e.speed * (e.chillT > 0 ? 0.75 : 1);
+    if (!fleeing && e.slowT > 0) s *= 0.7;
+    if (world.boon && world.boon.enemySpd) s *= 1 + world.boon.enemySpd;
+    return s;
+  }
+
   function update(world, e, dt) {
     var p = world.player, def = PB.ENEMIES[e.type] || {}, atk = def.attack || null, st = STYLE[e.ai] || STYLE.swarm;
     if (e.thrallT > 0) { // D5 Thrall: a summon fights for the boss, then comes home
@@ -182,7 +190,7 @@
     if (e.castT > 0) { e.castT = Math.max(0, e.castT - dt); e.vx *= 0.5; e.vy *= 0.5; return; } // winding up
     if (e.fleeT > 0) {
       e.fleeT = Math.max(0, e.fleeT - dt);
-      if (e.rooted <= 0) PB.World.moveToward(world, e, e.x + (e.x - p.x), e.y + (e.y - p.y), e.speed * (e.chillT > 0 ? 0.75 : 1));
+      if (e.rooted <= 0) PB.World.moveToward(world, e, e.x + (e.x - p.x), e.y + (e.y - p.y), footSpeed(world, e, true));
       return;
     }
     var t = pickTarget(world, e);
@@ -200,7 +208,7 @@
       }
     }
 
-    var moving = e.rooted <= 0, spd = e.speed * (e.chillT > 0 ? 0.75 : 1) * (e.slowT > 0 ? 0.7 : 1);
+    var moving = e.rooted <= 0, spd = footSpeed(world, e, false);
     if (!st.melee && atk) { // ranged: hold at range, back off when crowded
       var r = rangeOf(atk);
       if (dist > r * 0.9) { if (moving) PB.World.moveToward(world, e, t.x, t.y, spd); }

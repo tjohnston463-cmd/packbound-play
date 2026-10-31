@@ -384,6 +384,13 @@
         ring(j, ev.x != null ? ev.x : p ? p.x : 0, ev.y != null ? ev.y : p ? p.y : 0, 6, 80, 0.7, C.gold, 4);
         emit(j, ev.x != null ? ev.x : p ? p.x : 0, ev.y != null ? ev.y : p ? p.y : 0, 30, C.gold, { speed: 200, life: 0.9, up: 40 });
         return;
+      case 'grove':
+      case 'grove-take': {
+        var gc = ev.cursed ? 0xe85a4a : ev.id === 'moon' ? 0x8eb6ff : ev.id === 'den' ? 0x7dff9a : ev.id === 'greed' ? 0xe2c27a : 0xffd44a;
+        emit(j, ev.x, ev.y, ev.type === 'grove-take' ? 26 : 12, gc, { speed: 80, life: 0.8, up: 50 });
+        if (ev.type === 'grove-take') addTrauma(j, ev.cursed ? 0.22 : 0.1);
+        return;
+      }
       case 'drop': { // a column of motes in the rarity color; the beam itself is drawn by render.js from world.drops
         var rc = ev.rarity === 'unique' ? 0xe8873a : ev.rarity === 'set' ? 0x4ecf6a : ev.rarity === 'rare' ? 0xffd44a : ev.rarity === 'magic' ? 0x6f9cff : ev.rarity === 'rune' ? 0x7dcca0 : ev.rarity === 'moonstone' ? 0x9fc0ff : 0xd8d8d8;
         emit(j, ev.x, ev.y, ev.rarity === 'common' ? 4 : ev.rarity === 'rune' ? 16 : 12, rc, { speed: 40, life: 0.9, up: ev.rarity === 'rune' ? 160 : 120 });

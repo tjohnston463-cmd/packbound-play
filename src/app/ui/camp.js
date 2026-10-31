@@ -5,7 +5,7 @@
 (function (PB) {
   'use strict';
   var LW = 1280, LH = 720, FX = 640, FY = 400;
-  var S = { mode: 'camp', moon: 0, confirm: null, t: 0, trees: null, cubeUid: null, cubePage: 0 };
+  var S = { mode: 'camp', moon: 0, confirm: null, t: 0, trees: null, cubeUid: null, cubePage: 0, gambleLast: null };
 
   function lcg(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
   function trees() {
@@ -147,6 +147,7 @@
       else PB.Game.open(m[0]);
     });
     if (UI.button(g, 'to-title', { x: 24, y: 76, w: 90, h: 26 }, 'Title', { size: 12 })) PB.Game.toTitle();
+    if (S.mode === 'camp' && UI.button(g, 'gamble', { x: 124, y: 76, w: 168, h: 26 }, 'Gamble · ' + PB.Camp.GAMBLE_COST + ' Dust', { size: 12 })) S.mode = 'gamble';
   }
 
   function maxMoon(save) { return save.progress.cleared.indexOf(PB.ZONES.length - 1) >= 0 ? save.progress.bestMoon + 1 : 0; }
@@ -213,6 +214,32 @@
       UI.text(g, e.name + ' · L' + e.level, ex + 44, 218 + i * 34, UI.font(13), 'rgba(210,225,255,0.85)');
     });
     if (UI.button(g, 'shrine-back', { x: LW / 2 - 70, y: 560, w: 140, h: 34 }, 'Back', { tone: 'moss' })) S.mode = 'camp';
+  }
+
+  function drawGamble(g, UI, G) {
+    var save = G.save, C = UI.C, band = PB.Camp.gambleBand(save), dust = save.currency.dust || 0, full = PB.Drops.bagCount(save) >= PB.Drops.BAG_MAX;
+    var poor = dust < PB.Camp.GAMBLE_COST;
+    UI.dim(g, 0.72);
+    UI.panel(g, 200, 120, LW - 400, 440, { title: 'Hearth Gamble', glow: 'rgba(226,194,122,0.3)' });
+    UI.text(g, 'Spend Dust. The hearth rolls a magic, a rare, a set or a unique. Never a plain piece.', LW / 2, 180, UI.font(15), C.bone, 'center');
+    UI.text(g, 'This roll is item level ' + band[0] + ' to ' + band[1] + '. Deeper woods and a higher Moon raise it.', LW / 2, 206, UI.font(14), C.dim, 'center');
+    UI.text(g, 'Dust ' + dust + '    ·    ' + PB.Camp.GAMBLE_COST + ' a roll    ·    bag ' + PB.Drops.bagCount(save) + ' / ' + PB.Drops.BAG_MAX, LW / 2, 240, UI.font(16, true), C.gold, 'center');
+    var last = S.gambleLast;
+    if (!last) UI.text(g, 'Nothing on the table yet.', LW / 2, 310, UI.font(16), C.faint, 'center');
+    else {
+      var col = '#d8d8d8', ri;
+      for (ri = 0; ri < PB.RARITIES.length; ri++) if (PB.RARITIES[ri].id === last.rarity) col = PB.RARITIES[ri].color;
+      UI.text(g, last.name, LW / 2, 290, UI.font(20, true), col, 'center');
+      UI.text(g, last.rarity + '  ·  item level ' + last.ilvl, LW / 2, 318, UI.font(14), C.dim, 'center');
+      var lines = PB.Loot.describe(last).slice(0, 4);
+      lines.forEach(function (line, i) { UI.text(g, line, LW / 2, 348 + i * 18, UI.font(13), C.bone, 'center'); });
+    }
+    if (UI.button(g, 'gamble-roll', { x: LW / 2 - 180, y: 470, w: 170, h: 40 }, 'Roll', { tone: 'ember', disabled: poor || full, reason: full ? 'The bag is full (40). Render something.' : 'Need ' + PB.Camp.GAMBLE_COST + ' Dust' })) {
+      var res = PB.Camp.gamble(save);
+      if (res.ok) { S.gambleLast = res.item; PB.Game.toast('Gambled: ' + res.item.name); PB.Game.afterSaveChange(); }
+      else UI.flashReason(res.reason === 'bag' ? 'The bag is full' : 'Not enough Dust', LW / 2, 450);
+    }
+    if (UI.button(g, 'gamble-back', { x: LW / 2 + 10, y: 470, w: 170, h: 40 }, 'Back', { tone: 'moss' })) S.mode = 'camp';
   }
 
   function cubeNote(save, res) {
@@ -298,6 +325,7 @@
       if (S.mode === 'map') drawMap(g, UI, G);
       else if (S.mode === 'shrine') drawShrine(g, UI, G);
       else if (S.mode === 'cube') drawCube(g, UI, G);
+      else if (S.mode === 'gamble') drawGamble(g, UI, G);
       else drawMenu(g, UI, G);
     }
   };

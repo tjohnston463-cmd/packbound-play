@@ -18,6 +18,7 @@
   function regen(world, p, dt) {
     var save = world.save, level = save ? save.player.level : 1;
     var rate = PB.Progression.playerStats(level).spiritRegen * (1 + (world.mods.stats.spiritRegen || 0) / 100);
+    if (world.boon && world.boon.regen) rate *= 1 + world.boon.regen;
     p.spirit = Math.min(p.maxSpirit, p.spirit + rate * dt);
   }
 

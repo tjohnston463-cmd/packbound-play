@@ -45,6 +45,7 @@
     d.list = override || spawnList(d.zone, wave, d.moon, world.rng.spawn);
     world.ilvl = d.scale.ilvl;
     if (wave >= 4 && !world.shrine) openShrine(world);
+    PB.Shrines.onWave(world);
     PB.Events.emit(world.events, 'wave', { wave: wave, zone: d.zone, boss: wave > PB.Waves.WAVES_PER_ZONE, count: d.list.length });
   }
 
@@ -126,6 +127,7 @@
     d.farmT = (d.farmT || 0) + dt;
     if (d.farmT < FARM_EVERY) return;
     d.farmT -= FARM_EVERY;
+    if (!world.grove) PB.Shrines.onWave(world);
     d.scale = PB.Waves.scale(d.zone, PB.Waves.WAVES_PER_ZONE, d.moon);
     var quarry = PB.Waves.quarry(d.zone, d.moon), n;
     for (n = 0; n < FARM_N; n++) {

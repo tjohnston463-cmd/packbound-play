@@ -41,7 +41,7 @@
   function opts(world, def) {
     var save = world.save;
     var farm = !!(world.dir && world.dir.state === 'victory');
-    return { magicFind: (world.mods.stats.magicFind || 0) + (farm ? 100 : 0), moon: save ? save.progress.moon : 0,
+    return { magicFind: (world.mods.stats.magicFind || 0) + (farm ? 100 : 0) + PB.Shrines.magicFind(world), moon: save ? save.progress.moon : 0,
              elite: !!(def.elite && def.elite.length), boss: !!def.boss, farm: farm };
   }
 
@@ -77,6 +77,10 @@
     }
     if (o.elite && !o.boss && rng.chance(ELITE_MOON)) place(world, def.x + 14, def.y + 10, { moonstones: 1 });
     maybeRune(world, def, o, rng);
+    if (world.runeGift) {
+      world.runeGift = 0;
+      place(world, def.x - 16, def.y - 8, { rune: PB.Runes.roll(rng, ilvl) });
+    }
   }
 
   // Into the bag (or the purse). Returns false when the bag is full.

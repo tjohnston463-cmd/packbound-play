@@ -64,6 +64,8 @@
       'At camp, Dust renders an item, or a Whetstone pushes one number up a step.',
       'Elites, the quarry and bosses drop Grove Runes. The Hearth Cube sockets them. A finished word changes how the pack fights.',
       'Grove sets drop in green. Two pieces wake a bonus. Three pieces change the pack. A set staff cannot hold a rune word. First Howl and the Green Wreath both want the staff.',
+      'Each wave grows a grove shrine. Walk into it. Combat, Moon and Den help. Greed pays and you bruise. A red Monster Shrine turns the wood, and the next kill drops a rune.',
+      'At camp, Gamble spends Dust on a magic, rare, set or unique. Never a plain piece. The roll follows the deepest wood you have opened, and the Moon.',
       'When the last summon of a type falls, it waits in the Den.'
     ];
     PB.SYNERGY_RULES.forEach(function (r) { out.push(r.text); });

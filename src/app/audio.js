@@ -245,6 +245,8 @@
         case 'drop': return playAt(ev.rarity === 'moonstone' ? 'loot_magic' : ev.rarity === 'rune' ? 'loot_rune' : 'loot_' + ev.rarity, ev.x);
         case 'pickup': return playAt('pickup', ev.x);
         case 'hunt': return playAt('hunt', undefined);
+        case 'grove': return playAt(ev.cursed ? 'telegraph' : 'loot_magic', ev.x);
+        case 'grove-take': return playAt(ev.cursed ? 'phase' : 'evolve', ev.x);
       }
     } catch (err) { /* never break the frame */ }
     return null;

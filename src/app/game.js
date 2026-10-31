@@ -295,6 +295,8 @@
     }
     else if (e.type === 'echoes-linger') toast('The Echoes linger for 10s');
     else if (e.type === 'shrine') toast('A Fusion Shrine grows out of the ground');
+    else if (e.type === 'grove') toast(e.cursed ? 'A ' + e.name + ' stands in the wood. It bites, and the next kill pays a rune.' : 'A ' + e.name + ' stands in the wood.');
+    else if (e.type === 'grove-take') toast(e.text || e.name);
     else if (e.type === 'evolve-ready') { var ei = w.inds[e.indId]; if (ei) toast(ei.name + ' is ready to evolve'); }
     if (e.type === 'pickup' && e.uid != null && w.save && PB.Drops.bagCount(w.save) === 36) toast('Bag is getting full. 36 of 40. Render at camp.');
     if (STORE_ON[e.type]) persist(e.type);

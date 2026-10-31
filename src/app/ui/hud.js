@@ -72,6 +72,14 @@
       var dx = sx - LW / 2, dy = sy - LH / 2, k = Math.min((LW / 2 - M) / Math.max(1e-6, Math.abs(dx)), (LH / 2 - M) / Math.max(1e-6, Math.abs(dy)));
       out.push({ x: LW / 2 + dx * k, y: LH / 2 + dy * k, angle: Math.atan2(dy, dx), d: dx * dx + dy * dy, boss: !!e.boss, elite: !!(e.elite && e.elite.length) });
     }
+    if (world.grove) {
+      var gsh = world.grove, gsx = gsh.x - x0, gsy = gsh.y - y0;
+      if (gsx < 0 || gsx > LW || gsy < 0 || gsy > LH) {
+        var gdx = gsx - LW / 2, gdy = gsy - LH / 2;
+        var gk = Math.min((LW / 2 - M) / Math.max(1e-6, Math.abs(gdx)), (LH / 2 - M) / Math.max(1e-6, Math.abs(gdy)));
+        out.push({ x: LW / 2 + gdx * gk, y: LH / 2 + gdy * gk, angle: Math.atan2(gdy, gdx), d: -1, boss: false, elite: false, grove: true, color: gsh.color });
+      }
+    }
     out.sort(function (a, b) { return (b.boss - a.boss) || a.d - b.d; });
     return out.slice(0, 10);
   }
@@ -251,6 +259,10 @@
     }
     var setLine = world.save && PB.Sets ? PB.Sets.line(world.save) : '';
     if (setLine) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, setLine, 12, 108, UI.font(12), '#8fe07a'); g.restore(); }
+    if (world.boon) {
+      var bn = world.boon, bl = bn.name + (bn.until ? ' ' + Math.max(0, Math.ceil(bn.until - world.time)) + 's' : (bn.waveBound ? ' this wave' : ''));
+      g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, bl, 12, 126, UI.font(13, true), bn.cursed ? '#e85a4a' : '#ffd678'); g.restore();
+    }
     if (ds.boss && !ds.boss.dead) {
       var bb = ds.boss, bw = 460, bx = LW / 2 - bw / 2, by = 38, f = Math.max(0, bb.hp / bb.maxHp);
       g.fillStyle = 'rgba(5,5,5,0.85)'; g.fillRect(bx - 3, by - 3, bw + 6, 20);
@@ -267,7 +279,7 @@
     for (var i = 0; i < list.length; i++) {
       var a = list[i];
       g.save(); g.translate(a.x, a.y); g.rotate(a.angle);
-      g.fillStyle = a.boss ? '#ffd678' : a.elite ? '#ff9f5a' : 'rgba(226,72,58,0.85)';
+      g.fillStyle = a.grove ? (a.color || '#ffd44a') : a.boss ? '#ffd678' : a.elite ? '#ff9f5a' : 'rgba(226,72,58,0.85)';
       var s = a.boss ? 14 : 9;
       g.beginPath(); g.moveTo(s, 0); g.lineTo(-s * 0.7, -s * 0.7); g.lineTo(-s * 0.3, 0); g.lineTo(-s * 0.7, s * 0.7); g.closePath(); g.fill();
       g.restore();
@@ -324,6 +336,8 @@
       (ds.state === 'wave' && !ds.boss ? ' · ' + ds.left + ' left' : ds.state === 'lull' ? ' · Lull' : '') : 'The field');
     lines.push('Life ' + (p.maxHp >= 1e8 ? '∞' : Math.max(0, Math.ceil(p.hp)) + ' / ' + Math.ceil(p.maxHp)) + ' · Spirit ' + Math.floor(p.spirit) + ' / ' + Math.floor(p.maxSpirit));
     lines.push('Pack ' + world.counts.summon + ' · Enemies ' + world.counts.enemy + ' · Chorus ' + Math.round(world.chorus ? world.chorus.meter : 0) + '%');
+    if (world.boon) lines.push(world.boon.name + (world.boon.cursed ? ' (cursed)' : ''));
+    else if (world.grove) lines.push(world.grove.name + ' in the wood');
     var t = G && G.toasts && G.toasts[G.toasts.length - 1];
     if (t) lines.push(t.text);
     var hunt = PB.Director.huntLine(world);

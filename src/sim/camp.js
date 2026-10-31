@@ -102,6 +102,29 @@
     return { ok: n > 0, n: n };
   }
 
+  // Dust for a roll. Never a plain piece. The level follows the deepest wood opened, and the Moon, with a small swing.
+  var GAMBLE_COST = 6, GAMBLE_W = { magic: 74, rare: 20, set: 4, unique: 2 };
+
+  function gambleBand(save) {
+    var g = save.progress || {}, base = 2 + (g.unlockedZone || 0) * 3 + (g.moon || 0) * 8;
+    return [Math.max(1, base - 1), base + 4];
+  }
+
+  function gamble(save) {
+    if ((save.currency.dust || 0) < GAMBLE_COST) return { ok: false, reason: 'dust', cost: GAMBLE_COST };
+    if (PB.Drops.bagCount(save) >= PB.Drops.BAG_MAX) return { ok: false, reason: 'bag' };
+    save.gambleRolls = (save.gambleRolls || 0) + 1;
+    var rng = new PB.Rng(PB.deriveSeed(save.seed >>> 0, 'gamble:' + save.gambleRolls));
+    var band = gambleBand(save), ilvl = band[0] + rng.int(0, band[1] - band[0]);
+    var rarity = rng.weighted(['magic', 'rare', 'set', 'unique'], function (k) { return GAMBLE_W[k]; });
+    var item = PB.Loot.rollItem(rng, ilvl, rarity, save);
+    if (PB.Loot.isUpgrade(save, item)) item.upgrade = true;
+    save.inventory.push(item);
+    save.currency.dust -= GAMBLE_COST;
+    return { ok: true, item: item, cost: GAMBLE_COST, ilvl: ilvl };
+  }
+
   PB.Camp = { enshrine: enshrine, render: render, equip: equip, unequip: unequip, charmSlot: charmSlot, findItem: findItem, slotOf: slotOf, whet: whet, wearUpgrades: wearUpgrades,
+              gamble: gamble, gambleBand: gambleBand, GAMBLE_COST: GAMBLE_COST,
               ENSHRINE_LEVEL: ENSHRINE_LEVEL, DUST: DUST, WHET: WHET };
 })(globalThis.PB = globalThis.PB || {});

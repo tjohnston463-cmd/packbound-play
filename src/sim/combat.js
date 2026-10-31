@@ -69,7 +69,16 @@
       apply: function (m, a, d, ctx) { m.inc += ctx.stats.execute / 100; } },
     { id: 'kingslayer', text: 'Kingslayer scar: +20% damage vs bosses.',
       when: function (a, d) { return !!(d.boss && a.scars && a.scars.indexOf('kingslayer') >= 0); },
-      apply: function (m) { m.inc += 0.20; } }
+      apply: function (m) { m.inc += 0.20; } },
+    { id: 'grovecombat', text: 'Combat Shrine: you and the pack deal +20% damage while it lasts.',
+      when: function (a, d, ctx) { return !!(ctx.boon && ctx.boon.dmg) && a.team === 0; },
+      apply: function (m, a, d, ctx) { m.more *= 1 + ctx.boon.dmg; } },
+    { id: 'grovemonster', text: 'Monster Shrine: enemies deal +25% damage while the wood is turned.',
+      when: function (a, d, ctx) { return !!(ctx.boon && ctx.boon.enemyDmg) && a.team === 1; },
+      apply: function (m, a, d, ctx) { m.more *= 1 + ctx.boon.enemyDmg; } },
+    { id: 'grovegreed', text: 'Greed Shrine: you and the pack take +12% damage until the wave ends.',
+      when: function (a, d, ctx) { return !!(ctx.boon && ctx.boon.taken) && d.team === 0; },
+      apply: function (m, a, d, ctx) { m.more *= 1 + ctx.boon.taken; } }
   ];
 
   // attacker: {dmg:[min,max], inc, more, critChance, critMult, tags, team, kind, auraDmgInc}

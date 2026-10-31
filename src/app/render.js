@@ -490,6 +490,27 @@
     }
   }
 
+  // A grove shrine names itself before you walk in, so a red Monster Shrine is a choice.
+  function drawGrove(g, world) {
+    var s = world.grove;
+    if (!s) return;
+    var pulse = 0.5 + 0.5 * Math.sin(R.frame * 0.08);
+    g.drawImage(R.shadow, s.x - 16, s.y - 4, 36, 12);
+    g.fillStyle = '#2c3138';
+    g.beginPath(); g.moveTo(s.x - 10, s.y + 4); g.lineTo(s.x - 8, s.y - 36); g.lineTo(s.x, s.y - 44); g.lineTo(s.x + 9, s.y - 34); g.lineTo(s.x + 11, s.y + 4); g.closePath(); g.fill();
+    g.fillStyle = '#6a727c';
+    g.beginPath(); g.moveTo(s.x - 10, s.y + 4); g.lineTo(s.x - 8, s.y - 36); g.lineTo(s.x, s.y - 44); g.lineTo(s.x, s.y + 4); g.closePath(); g.fill();
+    g.globalCompositeOperation = 'lighter';
+    g.fillStyle = s.color; g.globalAlpha = 0.35 + 0.4 * pulse;
+    g.beginPath(); g.arc(s.x, s.y - 18, 10 + 3 * pulse, 0, PB.M.TAU); g.fill();
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    ring(g, s.x, s.y, s.r, s.cursed ? 'rgba(232,90,74,0.55)' : 'rgba(255,214,120,0.35)', 1.5, [3, 5]);
+    g.font = '13px ' + SERIF; g.textAlign = 'center'; g.fillStyle = s.color;
+    g.fillText(s.name, s.x, s.y - 56);
+    if (s.cursed) { g.fillStyle = '#e85a4a'; g.font = '12px ' + SERIF; g.fillText('cursed — it pays', s.x, s.y - 42); }
+    g.textAlign = 'left';
+  }
+
   function drawGroundRings(g, world) {
     var p = world.player, an = world.anchor;
     if (an && !an.dead) { // Skinwalk: the possessed summon wears a gold ring; the husk a grey one
@@ -656,6 +677,7 @@
     for (var t = 0; t < world.telegraphs.length; t++) { var tg = world.telegraphs[t]; lightHole(tg.x, tg.y, Math.min(200, tg.radius || 100), 0.8, x0, y0); }
     for (var k = 0; k < j.fx.length; k++) { var f = j.fx[k]; if (f.life > 0) lightHole(f.x, f.y, f.radius * 1.7, f.life / f.max, x0, y0); }
     if (world.shrine) lightHole(world.shrine.x, world.shrine.y, 150, 1, x0, y0);
+    if (world.grove) lightHole(world.grove.x, world.grove.y, 120, 0.9, x0, y0);
     var G0 = R.ground || {}, lights = G0.lights || [], torches = G0.torches || [];
     for (var l = 0; l < lights.length; l++) lightHole(lights[l].x, lights[l].y, lights[l].r, lights[l].k * 1.4, x0, y0);
     for (var tc = 0; tc < torches.length; tc++) {
@@ -931,6 +953,7 @@
     drawOrders(g, world);
     drawTelegraphs(g, world);
     drawShrine(g, world);
+    drawGrove(g, world);
     drawCorpses(g, world, x0, y0);
     drawDrops(g, world, x0, y0, !!info.labels);
     drawGroundRings(g, world);

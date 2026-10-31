@@ -16,7 +16,7 @@
       player: { level: 1, xp: 0, skills: {}, bonusPoints: 0 },
       roster: [], inventory: [], equipped: { staff: null, mask: null, pelt: null, talisman: null, charm1: null, charm2: null },
       currency: { moonstones: 0, dust: 0 },
-      runes: PB.Runes.emptyPouch(), cubeRolls: 0,
+      runes: PB.Runes.emptyPouch(), cubeRolls: 0, gambleRolls: 0,
       progress: { unlockedZone: 0, cleared: [], moon: 0, bestMoon: 0, moonCleared: {} }, // moonCleared: Moon tier -> zones cleared at it
       echoes: [],
       codex: { fusions: {}, uniques: {}, enemies: {} },
@@ -144,6 +144,7 @@
     var runeIds = Object.keys(s.runes);
     if (runeIds.length !== PB.RUNES.length || runeIds.some(function (id) { return !PB.RUNE_BY_ID[id] || !isInt(s.runes[id], 0, 1e9); })) return 'runes';
     if (!isInt(s.cubeRolls, 0, 1e9)) return 'cube';
+    if (!isInt(s.gambleRolls, 0, 1e9)) return 'gamble';
     if (!isObj(g) || !isInt(g.unlockedZone, 0, PB.ZONES.length - 1) || !Array.isArray(g.cleared) || !isInt(g.moon, 0, 1000) || !isInt(g.bestMoon, 0, 1000)) return 'progress';
     if (!g.cleared.every(function (z) { return isInt(z, 0, PB.ZONES.length - 1); })) return 'progress';
     if (!isObj(g.moonCleared) || !Object.keys(g.moonCleared).every(function (k) {

@@ -353,6 +353,7 @@
     var stats = world.mods.stats || {};
     var haste = atkBreakpoint(stats.packAtkSpd) / 100 + (stats.atkBreak || 0) / 100;
     if (world.player && world.player.bloodedT > 0) haste += 0.08;
+    if (world.boon && world.boon.atk) haste += world.boon.atk; // a shrine is a raw burst, not a gear breakpoint
     return mul.atkRate * (1 + (e.atkSpdBuff || 0) + haste);
   }
 
