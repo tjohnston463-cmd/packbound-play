@@ -310,6 +310,29 @@
     g.restore(); g.globalAlpha = 1;
   }
 
+  // Three columns beside the life orb, the way a belt sits next to the globe. Empty columns stay drawn so the key is visible.
+  function drawBelt(g, world) {
+    var save = world.save, b = save && save.belt;
+    if (!b || !PB.UI) return;
+    var UI = PB.UI, key = function (action, fallback) { return PB.Input && PB.Input.keyOf ? (PB.Input.keyOf(action) || fallback) : fallback; };
+    var cols = [
+      { n: b.life, color: '#e2433a', key: key('sipLife', 'Z') },
+      { n: b.spirit, color: '#4f8de0', key: key('sipSpirit', 'X') },
+      { n: b.moon, color: '#c080e0', key: key('sipMoon', 'B') }
+    ];
+    cols.forEach(function (col, i) {
+      var x = 158 + i * 42, y = LH - 132;
+      UI.roundRect(g, x, y, 36, 46, 3);
+      g.fillStyle = 'rgba(6,5,4,0.9)'; g.fill();
+      g.strokeStyle = col.n > 0 ? col.color : 'rgba(120,104,80,0.45)'; g.lineWidth = 1.5; g.stroke();
+      g.fillStyle = col.color; g.globalAlpha = col.n > 0 ? 0.95 : 0.22;
+      g.beginPath(); g.arc(x + 18, y + 14, 6, 0, Math.PI * 2); g.fill();
+      g.globalAlpha = 1;
+      UI.text(g, String(col.n), x + 18, y + 22, UI.font(12, true), UI.C.bone, 'center');
+      UI.text(g, col.key, x + 18, y + 33, UI.font(10), UI.C.gold, 'center');
+    });
+  }
+
   // info: {now, toasts, waveBanner, cam}
   function draw(g, world, info) {
     var p = world.player, now = info.now || 0, cam = info.cam || PB.Render.cam;
@@ -320,7 +343,9 @@
     var cls = PB.Classes.of(world.save), orbC = cls.orb || ['#0c2a6a', '#4f8de0'];
     orb(g, LW - 84, LH - 84, 62, p.spirit / p.maxSpirit, orbC[0], orbC[1], Math.floor(p.spirit) + '', now + 1.3);
     PB.UI.text(g, 'Life', 84, LH - 174, PB.UI.font(11), PB.UI.C.dim, 'center');
-    if (p.maxHp < 1e8 && p.hp > 0 && p.hp / p.maxHp <= 0.3) PB.UI.text(g, 'Hurt', 84, LH - 196, PB.UI.font(16, true), '#e2433a', 'center');
+    if (p.reelT > 0) PB.UI.text(g, 'Staggered', 84, LH - 196, PB.UI.font(16, true), '#e2433a', 'center');
+    else if (p.maxHp < 1e8 && p.hp > 0 && p.hp / p.maxHp <= 0.3) PB.UI.text(g, 'Hurt', 84, LH - 196, PB.UI.font(16, true), '#e2433a', 'center');
+    drawBelt(g, world);
     PB.UI.text(g, cls.resource, LW - 84, LH - 174, PB.UI.font(11), PB.UI.C.dim, 'center');
     var cheap = Infinity;
     PB.Classes.order(world.save).forEach(function (t) { cheap = Math.min(cheap, PB.Roster.costFor(t, world.mods)); });
@@ -341,6 +366,10 @@
       (ds.state === 'wave' && !ds.boss ? ' · ' + ds.left + ' left' : ds.state === 'lull' ? ' · Lull' : '') : 'The field');
     var res = PB.Classes.of(world.save).resource;
     lines.push('Life ' + (p.maxHp >= 1e8 ? '∞' : Math.max(0, Math.ceil(p.hp)) + ' / ' + Math.ceil(p.maxHp)) + ' · ' + res + ' ' + Math.floor(p.spirit) + ' / ' + Math.floor(p.maxSpirit));
+    if (world.save && world.save.belt) {
+      var b = world.save.belt;
+      lines.push('Belt  ' + b.life + ' life · ' + b.spirit + ' ' + res + ' · ' + b.moon + ' moon');
+    }
     lines.push('Pack ' + world.counts.summon + ' · Enemies ' + world.counts.enemy + ' · Chorus ' + Math.round(world.chorus ? world.chorus.meter : 0) + '%');
     if (world.boon) lines.push(world.boon.name + (world.boon.cursed ? ' (cursed)' : ''));
     else if (world.grove) lines.push(world.grove.name + ' in the wood');

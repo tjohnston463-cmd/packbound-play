@@ -16,6 +16,7 @@
       player: { level: 1, xp: 0, skills: {}, bonusPoints: 0, classId: PB.Classes.normalize(classId) },
       roster: [], inventory: [], equipped: { staff: null, mask: null, pelt: null, talisman: null, charm1: null, charm2: null },
       currency: { moonstones: 0, dust: 0 },
+      belt: { life: 2, spirit: 2, moon: 0 },
       runes: PB.Runes.emptyPouch(), cubeRolls: 0, gambleRolls: 0,
       progress: { unlockedZone: 0, cleared: [], moon: 0, bestMoon: 0, moonCleared: {} }, // moonCleared: Moon tier -> zones cleared at it
       echoes: [],
@@ -141,6 +142,8 @@
     }
     var c = s.currency, g = s.progress;
     if (!isObj(c) || !isInt(c.moonstones, 0, 1e9) || !isInt(c.dust, 0, 1e9)) return 'currency';
+    var belt = s.belt, beltCap = PB.Belt ? PB.Belt.CAP : { life: 8, spirit: 8, moon: 4 };
+    if (!isObj(belt) || !isInt(belt.life, 0, beltCap.life) || !isInt(belt.spirit, 0, beltCap.spirit) || !isInt(belt.moon, 0, beltCap.moon)) return 'belt';
     if (!isObj(s.runes)) return 'runes';
     var runeIds = Object.keys(s.runes);
     if (runeIds.length !== PB.RUNES.length || runeIds.some(function (id) { return !PB.RUNE_BY_ID[id] || !isInt(s.runes[id], 0, 1e9); })) return 'runes';

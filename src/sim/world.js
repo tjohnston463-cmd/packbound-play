@@ -12,7 +12,7 @@
     opts = opts || {};
     var seed = (opts.seed >>> 0) || 1;
     var rng = {};
-    ['combat', 'ai', 'spawn', 'loot', 'names', 'fx', 'shrine'].forEach(function (k) { rng[k] = new PB.Rng(PB.deriveSeed(seed, k + ':' + (opts.zone || 0))); });
+    ['combat', 'ai', 'spawn', 'loot', 'names', 'fx', 'shrine', 'flask'].forEach(function (k) { rng[k] = new PB.Rng(PB.deriveSeed(seed, k + ':' + (opts.zone || 0))); });
     var level = opts.save ? opts.save.player.level : 1, ps = PB.Progression.playerStats(level);
     var world = {
       seed: seed, tick: 0, time: 0, width: W, height: H, freeze: 0, freezeGate: 0, stopTick: -1, stopN: 0,
@@ -143,6 +143,7 @@
     if (att.team === 0 && def.team === 1 && att.tags && att.tags.length && !def.dead) PB.Chorus.onHit(world, att, def, h);
     if (def.kind === 'player') {
       hitStop(world, 50);
+      if (PB.Belt) PB.Belt.reel(world, def, amount);
       if (def.hp <= 0 && world.anchor) { PB.Skinwalk.snapBack(world); return h; } // the husk falls: back in the body
       if (def.hp <= 0 && !def.down) { def.down = true; PB.Events.emit(world.events, 'druid-down', { x: def.x, y: def.y }); }
       return h;
@@ -461,7 +462,7 @@
       time: world.time, mods: world.mods, temps: world.temps.map(function (t) { return t.id; }), nextTg: world.nextTg, nextCorpse: world.nextCorpse,
       counts: world.counts, wolvesAlive: world.wolvesAlive, zoneIdx: world.zoneIdx, seed: world.seed, grove: world.grove, boon: world.boon, runeGift: world.runeGift,
       // the whole save but its settings: gear, Echoes and progress change how combat resolves
-      save: s ? { player: s.player, roster: s.roster, currency: s.currency, runes: s.runes, cubeRolls: s.cubeRolls, gambleRolls: s.gambleRolls, codex: s.codex, stats: s.stats, inventory: s.inventory, equipped: s.equipped,
+      save: s ? { player: s.player, roster: s.roster, currency: s.currency, runes: s.runes, belt: s.belt, cubeRolls: s.cubeRolls, gambleRolls: s.gambleRolls, codex: s.codex, stats: s.stats, inventory: s.inventory, equipped: s.equipped,
                   echoes: s.echoes, progress: s.progress, nextIndId: s.nextIndId, nextItemId: s.nextItemId, seed: s.seed, version: s.version } : null
     };
   }

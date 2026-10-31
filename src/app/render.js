@@ -403,6 +403,10 @@
         g.beginPath(); g.arc(p.x, p.y, 72, 0, Math.PI * 2); g.stroke();
       }
     }
+    if (p.reelT > 0) {
+      g.strokeStyle = 'rgba(226,64,48,0.9)'; g.lineWidth = 2;
+      g.beginPath(); g.arc(p.x, p.y, p.r + 7, 0, Math.PI * 2); g.stroke();
+    }
     if (p.iframes > 0) g.globalAlpha = 0.5;
     animatedBlit(g, j.flashes.get(0) > 0 ? sp.white : sp.sheet, sp, Math.floor(st.ph * sp.frames) % sp.frames, p.x, p.y - p.r * 0.3, st, 1, j.kicks.get(0));
     g.globalAlpha = 1;
@@ -423,7 +427,7 @@
   }
 
   // Loot beams (world.drops): a tall light column in the rarity color over a glowing gem; labels when close.
-  var BEAM = { common: '216,216,216', magic: '111,156,255', rare: '255,212,74', set: '78,207,106', unique: '232,135,58', moonstone: '159,192,255', rune: '125,204,160' };
+  var BEAM = { common: '216,216,216', magic: '111,156,255', rare: '255,212,74', set: '78,207,106', unique: '232,135,58', moonstone: '159,192,255', rune: '125,204,160', 'flask-life': '196,56,56', 'flask-spirit': '79,141,224', 'flask-moon': '192,128,224' };
   // Ground names: drops within 160px of the druid; holding Alt (labels) names every drop on screen.
   var LABEL_R = 160;
   function onScreen(d, x0, y0) { return !(d.x < x0 - 40 || d.x > x0 + LW + 40 || d.y < y0 - 200 || d.y > y0 + LH + 40); }
@@ -438,9 +442,9 @@
   function drawDrops(g, world, x0, y0, alt) {
     var list = world.drops || [];
     for (var i = 0; i < list.length; i++) {
-      var d = list[i], key = d.rune ? 'rune' : d.item ? d.item.rarity : 'moonstone', c = BEAM[key] || BEAM.common;
+      var d = list[i], key = d.flask ? 'flask-' + d.flask : d.rune ? 'rune' : d.item ? d.item.rarity : 'moonstone', c = BEAM[key] || BEAM.common;
       if (!onScreen(d, x0, y0)) continue;
-      var tall = key === 'common' ? 50 : key === 'magic' ? 90 : key === 'rune' ? 130 : 150, pulse = 0.75 + 0.25 * Math.sin(R.frame * 0.08 + d.id);
+      var tall = key.indexOf('flask') === 0 ? 36 : key === 'common' ? 50 : key === 'magic' ? 90 : key === 'rune' ? 130 : 150, pulse = 0.75 + 0.25 * Math.sin(R.frame * 0.08 + d.id);
       if (!R.beams) R.beams = {};
       if (!R.beams[key]) {
         var bc = document.createElement('canvas'); bc.width = 16; bc.height = 160;
@@ -459,7 +463,8 @@
     g.font = '12px ' + SERIF; g.textAlign = 'center';
     for (var n = 0; n < named.length; n++) {
       var dd = named[n], runeName = dd.rune && PB.RUNE_BY_ID[dd.rune] ? PB.RUNE_BY_ID[dd.rune].name : null;
-      var text = runeName || (dd.item ? dd.item.name + (dd.item.upgrade ? ' +' : '') : 'Moonstone'), tw = g.measureText(text).width, ly = dd.y - 12;
+      var flaskName = dd.flask && PB.Belt ? PB.Belt.label(world.save, dd.flask) : null;
+      var text = flaskName || runeName || (dd.item ? dd.item.name + (dd.item.upgrade ? ' +' : '') : 'Moonstone'), tw = g.measureText(text).width, ly = dd.y - 12;
       for (var tries = 0; tries < 12; tries++) {
         var hit = false;
         for (var q = 0; q < placed.length; q++) {
@@ -470,7 +475,7 @@
         ly -= 13;
       }
       placed.push({ x: dd.x, y: ly, w: tw });
-      g.fillStyle = 'rgb(' + (BEAM[dd.rune ? 'rune' : dd.item ? dd.item.rarity : 'moonstone'] || BEAM.common) + ')';
+      g.fillStyle = 'rgb(' + (BEAM[dd.flask ? 'flask-' + dd.flask : dd.rune ? 'rune' : dd.item ? dd.item.rarity : 'moonstone'] || BEAM.common) + ')';
       g.fillText(text, dd.x, ly);
     }
     g.textAlign = 'left';

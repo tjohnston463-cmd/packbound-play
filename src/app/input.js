@@ -9,12 +9,15 @@
     KeyW: 'up', KeyA: 'left', KeyS: 'down', KeyD: 'right',
     Digit1: 'summon1', Digit2: 'summon2', Digit3: 'summon3', Digit4: 'summon4', Digit5: 'summon5',
     KeyQ: 'howl', KeyR: 'rally', KeyF: 'frenzy', KeyC: 'encircle', KeyG: 'heel',
+    KeyZ: 'sipLife', KeyX: 'sipSpirit', KeyB: 'sipMoon',
     Space: 'bound', Tab: 'skinwalk', KeyV: 'hunt', KeyT: 'interact',
     KeyI: 'inventory', KeyK: 'skills', KeyJ: 'pack', Escape: 'pause', KeyP: 'pause', KeyM: 'mute',
     AltLeft: 'labels', AltRight: 'labels'
   };
   var DEFAULTS = Object.assign({}, KEYMAP), DEFAULTS_ACTIONS = {}, STORE = 'packbound.keys.v1', storage = null, capture = null;
   for (var dc in DEFAULTS) DEFAULTS_ACTIONS[DEFAULTS[dc]] = true;
+  // Actions added after someone saved a key map. An older map keeps its binds and gains these on their default keys.
+  var GRAFT = { sipLife: 1, sipSpirit: 1, sipMoon: 1 };
   // Esc always pauses and closes menus, Shift is the dismiss modifier, and Ctrl/Meta belong to the browser. Of the
   // mouse, the middle and two side buttons (codes Mouse1, Mouse3, Mouse4) bind like keys; left and right stay
   // Thornlash and the pack commands.
@@ -87,15 +90,33 @@
     var m = null;
     try { m = st && JSON.parse(st.getItem(STORE)); } catch (_) { m = null; }
     if (!m || typeof m !== 'object') return false;
-    var seen = {}, ok = true;
+    var seen = {}, ok = true, copy = {};
     for (var c in m) {
       if (!DEFAULTS_ACTIONS[m[c]] || (RESERVED.test(c) && c !== 'Escape')) ok = false;
       seen[m[c]] = true;
+      copy[c] = m[c];
     }
-    for (var a in DEFAULTS_ACTIONS) if (!seen[a]) ok = false;
-    if (!ok) return false;
+    var missing = [];
+    for (var a in DEFAULTS_ACTIONS) if (!seen[a]) missing.push(a);
+    if (ok && missing.length && missing.every(function (id) { return GRAFT[id]; })) {
+      missing.forEach(function (id) {
+        var placed = false, code;
+        for (code in DEFAULTS) if (DEFAULTS[code] === id && !copy[code]) { copy[code] = id; placed = true; break; }
+        if (!placed) {
+          var letters = 'ZXCVBNMHJUYLIO';
+          for (var i = 0; i < letters.length; i++) {
+            code = 'Key' + letters.charAt(i);
+            if (!copy[code]) { copy[code] = id; placed = true; break; }
+          }
+        }
+        if (placed) seen[id] = true;
+      });
+      missing = [];
+      for (var a2 in DEFAULTS_ACTIONS) if (!seen[a2]) missing.push(a2);
+    }
+    if (!ok || missing.length) return false;
     for (var k in KEYMAP) delete KEYMAP[k];
-    Object.assign(KEYMAP, m, { Escape: 'pause' });
+    Object.assign(KEYMAP, copy, { Escape: 'pause' });
     return true;
   }
   // The next key-down or middle/side mouse button goes to fn(code) instead of the game (Esc calls fn(null): cancelled).

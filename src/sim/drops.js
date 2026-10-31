@@ -1,5 +1,6 @@
 // Drops in the world (spec §12). A kill rolls world.rng.loot: 6% for a normal enemy, 60% for an elite (which also
-// has a 10% Moonstone), 3-5 rare-or-better items plus 3 banked Moonstones for a boss. A drop is a light beam on the
+// has a 10% Moonstone), 3-5 rare-or-better items plus 3 banked Moonstones for a boss. Flasks roll on world.rng.flask
+// (see belt.js) and never enter the bag. A drop is a light beam on the
 // ground (world.drops, hashed); the druid picks it up within 40px. The bag holds 40 unequipped items; a full bag
 // leaves the drop where it lies and warns once per approach. Hoarding ravens (D2) carry drops to the druid.
 // The player may drop a bag item on the ground (discard): it lies at the druid's feet, is not picked up again until
@@ -17,9 +18,9 @@
 
   function place(world, x, y, what) {
     var d = { id: world.nextDrop = (world.nextDrop || 0) + 1, x: PB.M.clamp(x, 10, world.width - 10), y: PB.M.clamp(y, 10, world.height - 10),
-              item: what.item || null, moonstones: what.moonstones || 0, rune: what.rune || null, warned: false, carrier: 0 };
+              item: what.item || null, moonstones: what.moonstones || 0, rune: what.rune || null, flask: what.flask || null, warned: false, carrier: 0 };
     world.drops.push(d);
-    PB.Events.emit(world.events, 'drop', { id: d.id, x: d.x, y: d.y, rarity: d.rune ? 'rune' : d.item ? d.item.rarity : 'moonstone', rune: d.rune });
+    PB.Events.emit(world.events, 'drop', { id: d.id, x: d.x, y: d.y, rarity: d.flask ? 'flask-' + d.flask : d.rune ? 'rune' : d.item ? d.item.rarity : 'moonstone', rune: d.rune, flask: d.flask });
     return d;
   }
 
@@ -81,11 +82,17 @@
       world.runeGift = 0;
       place(world, def.x - 16, def.y - 8, { rune: PB.Runes.roll(rng, ilvl) });
     }
+    if (PB.Belt) PB.Belt.onKill(world, def, o);
   }
 
   // Into the bag (or the purse). Returns false when the bag is full.
   function take(world, d) {
     var save = world.save;
+    if (d.flask) {
+      if (!PB.Belt.take(world, d)) return false;
+      world.drops.splice(world.drops.indexOf(d), 1);
+      return true;
+    }
     if (d.rune) {
       var bag = save.runes || (save.runes = PB.Runes.emptyPouch());
       bag[d.rune] = (bag[d.rune] || 0) + 1;
@@ -130,7 +137,7 @@
       if (d.discarded && !d.away) continue; // just dropped: wait until the druid has left it
       if (d.item && !d.discarded && d.item.rarity === 'common' && !PB.Loot.isUpgrade(world.save, d.item)) continue; // a worse common stays where it fell
       if (take(world, d)) continue;
-      if (!d.warned) { d.warned = true; PB.Events.emit(world.events, 'pickup-fail', { id: d.id, reason: 'full', x: d.x, y: d.y }); }
+      if (!d.warned) { d.warned = true; PB.Events.emit(world.events, 'pickup-fail', { id: d.id, reason: d.flask ? 'belt' : 'full', x: d.x, y: d.y }); }
     }
   }
 

@@ -527,10 +527,12 @@
     p.whirlT = Math.max(0, (p.whirlT || 0) - dt);
     if (p.whirlT <= 0) p.whirlN = 0;
     p.bloodedT = Math.max(0, (p.bloodedT || 0) - dt);
+    p.reelT = Math.max(0, (p.reelT || 0) - dt);
     p.boundCd = Math.max(0, p.boundCd - dt);
     p.iframes = Math.max(0, p.iframes - dt);
     fades(world, dt);
     if (p.hp <= 0) return; // down: the game screen takes over
+    if (PB.Belt) PB.Belt.readPress(world, input); // a drink lands even while stunned or skinwalked, and it clears a stagger before this tick's step
     PB.Skinwalk.tick(world, dt);
     if (p.stunT > 0) { p.stunT = Math.max(0, p.stunT - dt); regen(world, p, dt); return; }
     if (world.anchor) { // Skinwalk: the husk stays put (Wildheart: it flees); input drives the possessed summon
@@ -548,7 +550,8 @@
       if (p.boundLeft < 1e-6) p.boundLeft = 0;
     } else {
       var mx = input.move.x, my = input.move.y, ml = Math.sqrt(mx * mx + my * my);
-      if (ml > 0) { p.x += mx / ml * p.speed * dt; p.y += my / ml * p.speed * dt; p.facing = Math.atan2(my, mx); }
+      var slow = (p.reelT || 0) > 0 && PB.Belt ? PB.Belt.REEL_SLOW : 1;
+      if (ml > 0) { p.x += mx / ml * p.speed * slow * dt; p.y += my / ml * p.speed * slow * dt; p.facing = Math.atan2(my, mx); }
     }
     if (pressed.indexOf('bound') >= 0 && p.boundCd <= EPS && p.boundLeft === 0) {
       bound(world, p, input);

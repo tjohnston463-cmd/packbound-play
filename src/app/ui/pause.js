@@ -5,6 +5,9 @@
   'use strict';
   var ACTION_TEXT = {
     bound: 'Bound: a 180px dodge dash with i-frames',
+    sipLife: 'Drink a life flask. A heavy hit staggers you. A drink shakes it off',
+    sipSpirit: 'Drink a spirit flask',
+    sipMoon: 'Drink a Moonflask: fills Life and Spirit, and shakes off a stagger',
     skinwalk: 'Skinwalk: become the summon under the cursor (or the nearest); press again to return',
     hunt: 'Wild Hunt (when the Chorus moon is full): every summon you ever raised stampedes',
     interact: 'Interact: open the Fusion Altar at a Fusion Shrine',
@@ -69,6 +72,7 @@
       'Grove sets drop in green. Two pieces wake a bonus. Three pieces change the pack. A set staff cannot hold a rune word. First Howl and the Green Wreath both want the staff.',
       'Each wave grows a grove shrine. Walk into it. Combat, Moon and Den help. Greed pays and you bruise. A red Monster Shrine turns the wood, and the next kill drops a rune.',
       'At camp, Gamble spends Dust on a magic, rare, set or unique. Never a plain piece. The roll follows the deepest wood you have opened, and the Moon.',
+      'The belt holds life flasks, spirit flasks and Moonflasks. They drop in the wood and do not fill the bag. A boss always leaves a Moonflask. Camp sells them for Dust. A heavy hit staggers your step until you drink.',
       'When the last summon of a type falls, it waits in the Den.'
     ];
     PB.SYNERGY_RULES.forEach(function (r) { out.push(r.text); });
@@ -142,7 +146,7 @@
     var calling = PB.Classes.of(PB.Game && PB.Game.G && PB.Game.G.save);
     calling.order.forEach(function (t, i) { rows.push(['summon' + (i + 1), 'Summon ' + PB.SUMMONS[t].name]); });
     for (var a in KEY_CMDS) rows.push([a, cmdName(KEY_CMDS[a])]);
-    return rows.concat([['bound', 'Bound (dodge)'], ['skinwalk', 'Skinwalk'], ['hunt', 'Wild Hunt'], ['interact', 'Interact'],
+    return rows.concat([['bound', 'Bound (dodge)'], ['sipLife', 'Life flask'], ['sipSpirit', 'Spirit flask'], ['sipMoon', 'Moonflask'], ['skinwalk', 'Skinwalk'], ['hunt', 'Wild Hunt'], ['interact', 'Interact'],
       ['inventory', 'Inventory'], ['skills', 'Skill tree'], ['pack', 'Pack'], ['pause', 'Pause (Esc always works)'], ['mute', 'Mute'], ['labels', 'Show loot names']]);
   }
   function stopListening() { if (S.listen) { S.listen = null; PB.Input.listen(null); } }

@@ -111,6 +111,8 @@
     loot_unique: function (d, t) { [0, 4, 7, 11].forEach(function (n) { tone(d, 'triangle', semi(523.25, n), 0, t, 0.8, 0.08, 0.02); }); arp(d, 'sine', 2093, [0, 2, 4, 7, 9, 12], t + 0.2, 0.06, 0.25, 0.04); return 0.9; },
     loot_set: function (d, t) { [0, 3, 7, 10].forEach(function (n) { tone(d, 'triangle', semi(392, n), 0, t, 0.55, 0.1, 0.02); }); tone(d, 'sine', 1568, 0, t + 0.12, 0.35, 0.08); return 0.55; },
     loot_rune: function (d, t) { tone(d, 'triangle', 196, 0, t, 0.22, 0.16, 0.04); tone(d, 'sine', 784, 1175, t + 0.05, 0.28, 0.12); return 0.4; },
+    loot_flask: function (d, t) { tone(d, 'sine', 740, 980, t, 0.1, 0.1); tone(d, 'triangle', 520, 0, t + 0.04, 0.08, 0.06); return 0.14; },
+    sip: function (d, t) { tone(d, 'sine', 440, 220, t, 0.12, 0.14); tone(d, 'triangle', 660, 0, t + 0.05, 0.08, 0.07); return 0.16; },
     pickup: function (d, t) { tone(d, 'sine', 990, 1480, t, 0.07, 0.1); return 0.08; },
     phase: function (d, t) { horn(d, 82.4, t, 0.5, 0.35, 500); horn(d, 123.5, t, 0.5, 0.25, 500); return 0.6; },
     scatter: function (d, t) { // Game Over: the pack howls as it scatters (two voices gliding down with vibrato)
@@ -249,8 +251,9 @@
         case 'gale': case 'thrall': return playAt('maul', ev.x);
         case 'thrall-break': case 'mimic': return playAt('linkcut', ev.x);
         case 'victory': return playAt('evolve', undefined);
-        case 'drop': return playAt(ev.rarity === 'moonstone' ? 'loot_magic' : ev.rarity === 'rune' ? 'loot_rune' : 'loot_' + ev.rarity, ev.x);
-        case 'pickup': return playAt('pickup', ev.x);
+        case 'drop': return playAt(ev.rarity === 'moonstone' ? 'loot_magic' : ev.rarity === 'rune' ? 'loot_rune' : (ev.rarity && ev.rarity.indexOf('flask') === 0) ? 'loot_flask' : 'loot_' + ev.rarity, ev.x);
+        case 'pickup': return playAt(ev.flask ? 'loot_flask' : 'pickup', ev.x);
+        case 'sip': return playAt('sip', ev.x);
         case 'hunt': return playAt('hunt', undefined);
         case 'grove': return playAt(ev.cursed ? 'telegraph' : 'loot_magic', ev.x);
         case 'grove-take': return playAt(ev.cursed ? 'phase' : 'evolve', ev.x);

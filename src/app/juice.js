@@ -414,15 +414,21 @@
         return;
       }
       case 'drop': { // a column of motes in the rarity color; the beam itself is drawn by render.js from world.drops
-        var rc = ev.rarity === 'unique' ? 0xe8873a : ev.rarity === 'set' ? 0x4ecf6a : ev.rarity === 'rare' ? 0xffd44a : ev.rarity === 'magic' ? 0x6f9cff : ev.rarity === 'rune' ? 0x7dcca0 : ev.rarity === 'moonstone' ? 0x9fc0ff : 0xd8d8d8;
+        var rc = ev.rarity === 'unique' ? 0xe8873a : ev.rarity === 'set' ? 0x4ecf6a : ev.rarity === 'rare' ? 0xffd44a : ev.rarity === 'magic' ? 0x6f9cff : ev.rarity === 'rune' ? 0x7dcca0 : ev.rarity === 'flask-life' ? 0xc43838 : ev.rarity === 'flask-spirit' ? 0x4f8de0 : ev.rarity === 'flask-moon' ? 0xc080e0 : ev.rarity === 'moonstone' ? 0x9fc0ff : 0xd8d8d8;
         emit(j, ev.x, ev.y, ev.rarity === 'common' ? 4 : ev.rarity === 'rune' ? 16 : 12, rc, { speed: 40, life: 0.9, up: ev.rarity === 'rune' ? 160 : 120 });
         if (ev.rarity === 'unique') addTrauma(j, 0.15);
         else if (ev.rarity === 'set') addTrauma(j, 0.08);
         return;
       }
       case 'pickup':
-        emit(j, ev.x, ev.y, 8, C.gold, { speed: 90, life: 0.4, up: 30 });
+        emit(j, ev.x, ev.y, 8, ev.flask === 'life' ? 0xc43838 : ev.flask === 'spirit' ? 0x4f8de0 : ev.flask === 'moon' ? 0xc080e0 : C.gold, { speed: 90, life: 0.4, up: 30 });
         return;
+      case 'sip': {
+        var sc = ev.kind === 'life' ? 0xc43838 : ev.kind === 'spirit' ? 0x4f8de0 : 0xc080e0;
+        ring(j, ev.x, ev.y, 8, 48, 0.35, sc, 3);
+        emit(j, ev.x, ev.y, 16, sc, { speed: 90, life: 0.45, up: 50 });
+        return;
+      }
       // D2: behavior affixes and uniques.
       case 'knockdown':
         ring(j, ev.x, ev.y, 6, 30, 0.3, C.dust, 3);

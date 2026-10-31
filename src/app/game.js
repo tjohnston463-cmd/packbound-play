@@ -237,10 +237,10 @@
       return;
     }
     if (e.type === 'chorus' && run) run.choruses++;
-    if (e.type === 'pickup' && run) { // the victory list
+    if (e.type === 'pickup' && run) { // the victory list. A flask fills the belt, not this list.
       if (e.uid != null) run.loot.push({ uid: e.uid, name: e.name, rarity: e.rarity });
       else if (e.rune) run.runes = (run.runes || 0) + 1;
-      else run.moonstones += e.moonstones || 0;
+      else if (!e.flask) run.moonstones += e.moonstones || 0;
     }
     if (e.type === 'moonstone' && run) run.moonstones += e.n || 0;
     if (e.type === 'shrine-open') { if (G.screen === 'field') open('altar', { field: true }); return; }
@@ -273,8 +273,10 @@
       if (si && sc) { toast(si.name + ' earned the ' + sc.name + ' scar'); if (run) run.scars.push(si.name + ' earned ' + sc.name + ' (' + sc.text + ')'); }
     } else if (e.type === 'fusion') toast('Fused: ' + e.name + ' (' + fusionName(e.unit) + ')');
     else if (e.type === 'evolve') { var vi = w.inds[e.indId]; if (vi) toast(vi.name + ' evolved' + (e.name ? ' into a ' + e.name : '')); }
-    else if (e.type === 'pickup-fail') toast('Inventory full (40): the drop stays on the ground');
+    else if (e.type === 'pickup-fail') toast(e.reason === 'belt' ? 'The belt is full. Drink one, then come back.' : 'Inventory full (40): the drop stays on the ground');
     else if (e.type === 'pickup' && e.rune) toast(e.name);
+    else if (e.type === 'pickup' && e.flask === 'moon') toast('Moonflask');
+    else if (e.type === 'sip-fail' && e.reason === 'empty') toast('No ' + (e.kind === 'moon' ? 'Moonflask' : e.kind === 'life' ? 'life flask' : 'spirit flask') + ' on the belt.');
     else if (e.type === 'hearthbond') toast('Hearthbond keeps a summon on its feet');
     else if (e.type === 'pickup' && e.name && e.rarity === 'set') toast('Set: ' + e.name);
     else if (e.type === 'pickup' && e.name && (e.rarity === 'rare' || e.rarity === 'unique' || (e.upgrade && e.rarity === 'magic'))) toast((e.upgrade ? 'Better: ' : 'Found ') + e.name);

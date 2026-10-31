@@ -149,6 +149,7 @@
     });
     if (UI.button(g, 'to-title', { x: 24, y: 76, w: 90, h: 26 }, 'Title', { size: 12 })) PB.Game.toTitle();
     if (S.mode === 'camp' && UI.button(g, 'gamble', { x: 124, y: 76, w: 168, h: 26 }, 'Gamble · ' + PB.Camp.GAMBLE_COST + ' Dust', { size: 12 })) S.mode = 'gamble';
+    if (S.mode === 'camp' && G.save && G.save.belt && UI.button(g, 'belt', { x: 304, y: 76, w: 168, h: 26 }, 'Belt ' + G.save.belt.life + '/' + G.save.belt.spirit + '/' + G.save.belt.moon, { size: 12 })) S.mode = 'belt';
   }
 
   function maxMoon(save) { return save.progress.cleared.indexOf(PB.ZONES.length - 1) >= 0 ? save.progress.bestMoon + 1 : 0; }
@@ -243,6 +244,32 @@
     if (UI.button(g, 'gamble-back', { x: LW / 2 + 10, y: 470, w: 170, h: 40 }, 'Back', { tone: 'moss' })) S.mode = 'camp';
   }
 
+  function drawBeltShop(g, UI, G) {
+    var save = G.save, C = UI.C, b = PB.Belt.of(save), dust = save.currency.dust || 0, res = PB.Classes.of(save).resource;
+    var zk = PB.Input.keyOf('sipLife'), xk = PB.Input.keyOf('sipSpirit'), bk = PB.Input.keyOf('sipMoon');
+    UI.dim(g, 0.72);
+    UI.panel(g, 180, 100, LW - 360, 490, { title: 'Hearth Belt', glow: 'rgba(196,56,56,0.28)' });
+    UI.text(g, zk + ' drinks life. ' + xk + ' drinks ' + res + '. ' + bk + ' drinks a Moonflask, which fills both.', LW / 2, 168, UI.font(15), C.bone, 'center');
+    UI.text(g, 'A heavy hit staggers your step. A drink shakes it off. Flasks drop in the wood. They do not fill the bag.', LW / 2, 194, UI.font(14), C.dim, 'center');
+    UI.text(g, 'A boss always leaves a Moonflask. Dust ' + dust + '.', LW / 2, 218, UI.font(14), C.gold, 'center');
+    var rows = [
+      ['life', 'Life flasks', b.life, '#e2433a'],
+      ['spirit', res + ' flasks', b.spirit, '#4f8de0'],
+      ['moon', 'Moonflasks', b.moon, '#c080e0']
+    ];
+    rows.forEach(function (row, i) {
+      var y = 250 + i * 72, kind = row[0], cost = PB.Belt.COST[kind], open = PB.Belt.room(save, kind);
+      UI.text(g, row[1] + '    ' + row[2] + ' / ' + PB.Belt.CAP[kind], LW / 2, y, UI.font(18, true), row[3], 'center');
+      var poor = dust < cost, full = open <= 0;
+      if (UI.button(g, 'belt-buy-' + kind, { x: LW / 2 - 120, y: y + 14, w: 240, h: 32 }, 'Buy · ' + cost + ' Dust', { size: 13, tone: kind === 'moon' ? 'ember' : 'moss', disabled: poor || full, reason: full ? 'That column is full' : 'Need ' + cost + ' Dust' })) {
+        var resBuy = PB.Belt.buy(save, kind);
+        if (resBuy.ok) { PB.Game.toast('Bought ' + resBuy.n + ' ' + PB.Belt.label(save, kind)); PB.Game.afterSaveChange(); }
+        else UI.flashReason(resBuy.reason === 'full' ? 'That column is full' : 'Not enough Dust', LW / 2, y + 6);
+      }
+    });
+    if (UI.button(g, 'belt-back', { x: LW / 2 - 70, y: 500, w: 140, h: 34 }, 'Back', { tone: 'moss' })) S.mode = 'camp';
+  }
+
   function cubeNote(save, res) {
     if (!res.ok) return;
     PB.Game.toast(res.text);
@@ -327,6 +354,7 @@
       else if (S.mode === 'shrine') drawShrine(g, UI, G);
       else if (S.mode === 'cube') drawCube(g, UI, G);
       else if (S.mode === 'gamble') drawGamble(g, UI, G);
+      else if (S.mode === 'belt') drawBeltShop(g, UI, G);
       else drawMenu(g, UI, G);
     }
   };
