@@ -423,7 +423,7 @@
     e.lungeCd = Math.max(0, (e.lungeCd || 0) - dt);
     e.leapCd = Math.max(0, (e.leapCd || 0) - dt);
     e.chargeCd = Math.max(0, (e.chargeCd || 0) - dt);
-    var spd = e.speed * mul.speed;
+    var spd = e.speed * mul.speed * (PB.Slaughter ? PB.Slaughter.moveMul(world) : 1);
     if (it.trail && roleIs(e, 'wolf')) spd *= 1.3;
     if (world.pack.recallT > 0 && e.scars && e.scars.indexOf('loyal') >= 0) spd *= 1.2;
     var bs = world.mods.stats.bloodscent;

@@ -34,6 +34,7 @@
       if (quarry) p = o.elite ? 0.32 : 0.14;
       if (o.farm && p) p *= 1.5;
       if (o.terror && p) p = Math.min(0.9, p * 1.45);
+      if (p && PB.Slaughter && PB.Slaughter.stacks(world) >= 10) p = Math.min(0.95, p * 1.25);
       if (!o.boss && o.champion && !o.elite) p = Math.max(p, 0.1);
       if (p > 0 && rng.chance(Math.min(0.85, p))) n = 1;
     }
@@ -65,7 +66,7 @@
       n = rng.int(BOSS_ITEMS[0], BOSS_ITEMS[1]) + (o.terror ? 1 : 0);
       save.currency.moonstones += BOSS_MOON;
       PB.Events.emit(world.events, 'moonstone', { n: BOSS_MOON, x: def.x, y: def.y });
-    } else if (rng.chance((o.elite ? ELITE_CHANCE : o.champion ? 0.35 : CHANCE) * (o.farm ? 2 : 1) * ((def.lashed || 0) > 0 ? 2 : 1))) n = 1;
+    } else if (rng.chance((o.elite ? ELITE_CHANCE : o.champion ? 0.35 : CHANCE) * (o.farm ? 2 : 1) * ((def.lashed || 0) > 0 ? 2 : 1) * (PB.Slaughter ? PB.Slaughter.lootMul(world) : 1))) n = 1;
     if (!o.boss && world.dir && PB.Waves.isQuarry(world.dir, def.type)) {
       save.currency.dust = (save.currency.dust || 0) + 1;
       PB.Events.emit(world.events, 'dust', { n: 1, x: def.x, y: def.y });

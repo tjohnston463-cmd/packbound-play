@@ -43,7 +43,7 @@
 
   function startWave(world, wave, override) {
     var d = world.dir;
-    d.wave = wave; d.state = 'wave'; d.t = 0; d.idx = 0; d.bossId = 0;
+    d.wave = wave; d.state = 'wave'; d.t = 0; d.idx = 0; d.bossId = 0; d.gates = null;
     d.scale = PB.Waves.scale(d.zone, wave, d.moon);
     d.list = override || spawnList(d.zone, wave, d.moon, world.rng.spawn, d.terror);
     world.ilvl = d.scale.ilvl + (d.terror && PB.Terror ? PB.Terror.ILVL : 0);
@@ -72,8 +72,33 @@
     }
   }
 
+  var PACK_ALONG = 28;
+
+  // Prey on one edge share a gate. The first body this wave stands where the roll put it.
+  // The next stand beside it, still on that edge, so a wave walks in as packs.
+  function packGate(world, sp, x, y) {
+    var d = world.dir;
+    if (!d || sp.boss || sp.pinned || typeof sp.edge !== 'number') return { x: x, y: y };
+    if (!d.gates) d.gates = {};
+    var g = d.gates[sp.edge];
+    if (!g) { d.gates[sp.edge] = { x: x, y: y, n: 0 }; return { x: x, y: y }; }
+    var slot = ++g.n;
+    var side = (slot % 2 === 0 ? 1 : -1) * Math.ceil(slot / 2);
+    var along = side * PACK_ALONG;
+    var inn = (slot % 2) * 6;
+    var W = world.width, H = world.height;
+    if (sp.edge === 0) return { x: PB.M.clamp(g.x + along, 40, W - 40), y: EDGE_IN + inn };
+    if (sp.edge === 2) return { x: PB.M.clamp(g.x + along, 40, W - 40), y: H - EDGE_IN - inn };
+    if (sp.edge === 1) return { x: W - EDGE_IN - inn, y: PB.M.clamp(g.y + along, 40, H - 40) };
+    return { x: EDGE_IN + inn, y: PB.M.clamp(g.y + along, 40, H - 40) };
+  }
+
   // One enemy from a spawn record, scaled by the current wave; elites get more life, damage and their modifiers.
   function spawnEnemy(world, sp, x, y, extra) {
+    if (sp.fromGate) {
+      var gate = packGate(world, sp, x, y);
+      x = gate.x; y = gate.y;
+    }
     var d = world.dir, s = d && d.scale ? d.scale : { hp: 1, dmg: 1 }, def = PB.ENEMIES[sp.enemy] || PB.BOSSES[sp.enemy];
     if (PB.BOSSES[sp.enemy] && d) s = PB.Waves.scale(d.zone, 1, d.moon); // a boss scales by zone and Moon, not by the wave term
     var el = sp.elite && sp.elite.length ? sp.elite.slice() : [];
@@ -139,7 +164,7 @@
     var quarry = PB.Waves.quarry(d.zone, d.moon), n;
     for (n = 0; n < FARM_N; n++) {
       if (world.counts.enemy >= PB.Waves.CONCURRENT_CAP) break;
-      var sp = { enemy: quarry, boss: false, elite: [], edge: n % 4, hunter: true, champion: !!(d.terror && n === 0) };
+      var sp = { enemy: quarry, boss: false, elite: [], edge: n % 4, hunter: true, champion: !!(d.terror && n === 0), fromGate: true };
       var at = edgePoint(world, sp.edge, world.rng.spawn);
       spawnEnemy(world, sp, at.x, at.y);
     }
@@ -159,6 +184,10 @@
     if (spd) line += ' · pack +' + spd + '% speed';
     if (gear) line += ' · haste step ' + gear + '%';
     if (world.player && world.player.bloodedT > 0) line += ' · blooded';
+    if (PB.Slaughter) {
+      var chain = PB.Slaughter.line(world);
+      if (chain) line += ' · ' + chain;
+    }
     return line;
   }
 
@@ -177,7 +206,9 @@
     d.t += dt;
     if (d.state === 'lull') { if (d.t >= LULL - EPS) startWave(world, d.wave + 1); return; }
     while (d.idx < d.list.length && d.list[d.idx].delay <= d.t + EPS && world.counts.enemy < PB.Waves.CONCURRENT_CAP) {
-      var sp = d.list[d.idx++], at = sp.pinned ? { x: sp.x, y: sp.y } : edgePoint(world, sp.edge, world.rng.spawn);
+      var sp = d.list[d.idx++];
+      if (!sp.pinned && !sp.boss) sp.fromGate = true;
+      var at = sp.pinned ? { x: sp.x, y: sp.y } : edgePoint(world, sp.edge, world.rng.spawn);
       spawnEnemy(world, sp, at.x, at.y);
     }
     if (d.bossId) {
@@ -208,5 +239,5 @@
 
   PB.Director = { start: start, startWave: startWave, update: update, spawnEnemy: spawnEnemy, spawnList: spawnList, onEnemyDeath: onEnemyDeath,
                   placeObstacles: placeObstacles, status: status, huntLine: huntLine, LULL: LULL, LANE: LANE, EMERGE: EMERGE, ELITE_HP: ELITE_HP, ELITE_DMG: ELITE_DMG,
-                  FARM_EVERY: FARM_EVERY, FARM_N: FARM_N };
+                  FARM_EVERY: FARM_EVERY, FARM_N: FARM_N, packGate: packGate, PACK_ALONG: PACK_ALONG };
 })(globalThis.PB = globalThis.PB || {});

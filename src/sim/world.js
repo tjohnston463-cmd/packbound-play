@@ -126,7 +126,8 @@
     if (def.kind === 'player' && world.mods.stats.armor) extraDr += world.mods.stats.armor / 100; // of Bark, pelts
     var h = PB.Combat.computeHit(att, def, { stats: world.mods.stats, wolvesAlive: world.wolvesAlive, frenzy: world.pack.frenzyT > 0, howl: world.pack.howlT > 0,
                                              extraDr: extraDr, omen: !!PB.AISummons.flags(world).t_omen, bearGuard: guarded(world, def), behaviors: beh,
-                                             quarry: def.team === 1 && PB.Waves.isQuarry(world.dir, def.type), boon: world.boon }, world.rng.combat);
+                                             quarry: def.team === 1 && PB.Waves.isQuarry(world.dir, def.type), boon: world.boon,
+                                             slaughter: PB.Slaughter ? PB.Slaughter.stacks(world) : 0 }, world.rng.combat);
     var amount = h.amount, soak = 0;
     if (src && src.packbane && def.kind === 'summon') { amount *= 2; h.amount = amount; } // Packbane elites
     if (def.shield > 0) { soak = Math.min(def.shield, amount); def.shield -= soak; amount -= soak; }
@@ -215,6 +216,7 @@
     if (def.indId) PB.Roster.onDeath(world, def);
     else PB.Progression.onKill(world, att, def);
     if (def.team === 1) {
+      if (PB.Slaughter) PB.Slaughter.onKill(world, def);
       if (world.mods.behaviors.greenbelow && def.elite && def.elite.length) PB.Behaviors.greenBelow(world, def.x, def.y);
       PB.AIEnemies.onDeath(world, def);
       if (def.kind === 'enemy') PB.Director.onEnemyDeath(world, def);

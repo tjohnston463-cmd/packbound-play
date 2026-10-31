@@ -542,6 +542,11 @@
     else if (kind === 'fury') fury(world, p, input);
     else if (kind === 'whirl') whirlwind(world, p, input);
     else thornlash(world, p, input);
+    // A live Slaughter shortens the next swing. The chain is already counted before this swing's kills land.
+    if (PB.Slaughter) {
+      var mul = PB.Slaughter.swingMul(PB.Slaughter.stacks(world));
+      if (mul < 1) p.lashCd = Math.max(0.16, p.lashCd * mul);
+    }
   }
 
   function update(world, input, dt) {
@@ -550,6 +555,7 @@
     p.whirlT = Math.max(0, (p.whirlT || 0) - dt);
     if (p.whirlT <= 0) p.whirlN = 0;
     p.bloodedT = Math.max(0, (p.bloodedT || 0) - dt);
+    if (PB.Slaughter) PB.Slaughter.tick(world, dt);
     p.reelT = Math.max(0, (p.reelT || 0) - dt);
     p.boundCd = Math.max(0, p.boundCd - dt);
     p.iframes = Math.max(0, p.iframes - dt);

@@ -115,6 +115,7 @@
     sip: function (d, t) { tone(d, 'sine', 440, 220, t, 0.12, 0.14); tone(d, 'triangle', 660, 0, t + 0.05, 0.08, 0.07); return 0.16; },
     pickup: function (d, t) { tone(d, 'sine', 990, 1480, t, 0.07, 0.1); return 0.08; },
     phase: function (d, t) { horn(d, 82.4, t, 0.5, 0.35, 500); horn(d, 123.5, t, 0.5, 0.25, 500); return 0.6; },
+    slaughter: function (d, t, o) { horn(d, 196 * (o.pitch || 1), t, 0.14, 0.32, 1100); tone(d, 'triangle', 520 * (o.pitch || 1), 0, t, 0.08, 0.12); return 0.16; },
     scatter: function (d, t) { // Game Over: the pack howls as it scatters (two voices gliding down with vibrato)
       tone(d, 'sawtooth', 520, 300, t, 1.4, 0.10, 0.25); tone(d, 'triangle', 392, 220, t + 0.35, 1.3, 0.09, 0.3);
       return 1.7;
@@ -210,6 +211,9 @@
         case 'kill':
           if (ev.team === 0) return playAt('summonDie', ev.x, { root: KEY[ev.unit] || 220 });
           return playAt(ev.elite || ev.boss ? 'eliteDeath' : 'death', ev.x);
+        case 'slaughter':
+          if (ev.milestone) return play('phase') ? 'phase' : null;
+          return playAt('slaughter', ev.x, { pitch: 0.85 + Math.min(12, ev.n || 1) * 0.04, gain: 0.55 });
         case 'summon': return KEY[ev.unit] ? playAt('summon_' + ev.unit, ev.x) : null;
         case 'leech': return null;
         case 'terror': return play('phase');

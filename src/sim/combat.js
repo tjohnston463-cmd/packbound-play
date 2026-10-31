@@ -82,7 +82,13 @@
       apply: function (m, a, d, ctx) { m.more *= 1 + ctx.boon.enemyDmg; } },
     { id: 'grovegreed', text: 'Greed Shrine: you and the pack take +12% damage until the wave ends.',
       when: function (a, d, ctx) { return !!(ctx.boon && ctx.boon.taken) && d.team === 0; },
-      apply: function (m, a, d, ctx) { m.more *= 1 + ctx.boon.taken; } }
+      apply: function (m, a, d, ctx) { m.more *= 1 + ctx.boon.taken; } },
+    { id: 'slaughter', text: 'Slaughter: from the fifth kill in a chain, you and the pack deal +2% damage per stack, up to 12. Gear of Slaughter adds its roll on each of those stacks.',
+      when: function (a, d, ctx) { return a.team === 0 && (ctx.slaughter || 0) >= 5; },
+      apply: function (m, a, d, ctx) {
+        var extra = PB.Slaughter ? PB.Slaughter.bonus(ctx.slaughter, ctx.stats.slaughter || 0) : 0;
+        if (extra) m.more *= 1 + extra;
+      } }
   ];
 
   // attacker: {dmg:[min,max], inc, more, critChance, critMult, tags, team, kind, auraDmgInc}

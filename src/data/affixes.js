@@ -50,7 +50,8 @@
     { id: 'of_rime',    kind: 'stat', stat: 'frostRes',   group: 's_frost',  slots: ['pelt', 'mask', 'charm'], ilvl: 1, name: 'of Rime', v: [12, 28], text: '+{v} frost ward. The cap is 75, and a penalty comes off first.' },
     { id: 'of_spark',   kind: 'stat', stat: 'sparkRes',   group: 's_spark',  slots: ['pelt', 'mask', 'charm'], ilvl: 2, name: 'of the Spark', v: [12, 28], text: '+{v} spark ward. The cap is 75, and a penalty comes off first.' },
     { id: 'of_rot',     kind: 'stat', stat: 'blightRes',  group: 's_blight', slots: ['pelt', 'mask', 'charm'], ilvl: 1, name: 'of the Rot', v: [12, 28], text: '+{v} blight ward. The cap is 75, and a penalty comes off first.' },
-    { id: 'of_warding', kind: 'stat', stat: 'allRes',     group: 's_allres', slots: ['talisman', 'pelt'], ilvl: 8, name: 'of Warding', v: [8, 16], text: '+{v} to every ward. The cap is 75. Stack past it for the Terror.' }
+    { id: 'of_warding', kind: 'stat', stat: 'allRes',     group: 's_allres', slots: ['talisman', 'pelt'], ilvl: 8, name: 'of Warding', v: [8, 16], text: '+{v} to every ward. The cap is 75. Stack past it for the Terror.' },
+    { id: 'of_slaughter', kind: 'stat', stat: 'slaughter', group: 's_slaughter', slots: ['staff', 'mask', 'charm'], ilvl: 4, name: 'of Slaughter', v: [1, 3], text: 'Each paying Slaughter stack also deals +{v}% damage, for you and the pack.' }
   ];
   PB.AFFIX_BY_ID = {};
   PB.AFFIXES.forEach(function (a) { PB.AFFIX_BY_ID[a.id] = a; });

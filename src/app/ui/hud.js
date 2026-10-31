@@ -254,6 +254,20 @@
     var onLash = 0, li;
     for (li = 0; li < world.ents.length; li++) if (world.ents[li].lashed > 0 && !world.ents[li].dead) onLash++;
     if (onLash) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, 'The pack is on your lash', LW / 2, ds.boss && !ds.boss.dead ? 100 : 66, UI.font(13, true), '#b6e36a', 'center'); g.restore(); }
+    if (PB.Slaughter) {
+      var sn = PB.Slaughter.stacks(world), sname = sn ? PB.Slaughter.line(world) : '';
+      if (sn) {
+        var sy = ds.boss && !ds.boss.dead ? 122 : 86;
+        var sc = sn >= 15 ? '#ffe08a' : sn >= 10 ? '#ff5a3a' : sn >= 5 ? '#ffb070' : '#cbb98a';
+        g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6;
+        UI.text(g, sname, LW / 2, sy, UI.font(sn >= 5 ? 22 : 16, true), sc, 'center');
+        g.restore();
+        var frac = Math.max(0, Math.min(1, (world.slaughter.t || 0) / PB.Slaughter.WINDOW));
+        var bw = 168, bx = LW / 2 - bw / 2, by = sy + 8;
+        g.fillStyle = 'rgba(8,6,4,0.8)'; g.fillRect(bx, by, bw, 6);
+        g.fillStyle = sc; g.fillRect(bx, by, bw * frac, 6);
+      }
+    }
     var pts = pointsLine(world);
     if (pts) {
       var py = ds.boss && !ds.boss.dead ? 80 : 48; // the boss bar owns the line under the title
@@ -385,6 +399,7 @@
     if (t) lines.push(t.text);
     var hunt = PB.Director.huntLine(world);
     if (hunt) lines.push(hunt);
+    if (PB.Slaughter && PB.Slaughter.stacks(world)) lines.push(PB.Slaughter.line(world));
     var pts = pointsLine(world);
     if (pts) lines.push(pts);
     var setLine = world.save && PB.Sets ? PB.Sets.line(world.save) : '';

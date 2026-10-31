@@ -136,7 +136,7 @@
       if (!n.active) { if (!free) free = n; } else if (!oldest || n.t < oldest.t) oldest = n;
     }
     n = free || oldest;
-    n.active = true; n.id = id; n.x = x; n.y = y; n.amount = amount; n.crit = !!crit; n.t = now; n.last = now; n.kind = kind || 'hit';
+    n.active = true; n.id = id; n.x = x; n.y = y; n.amount = amount; n.crit = !!crit; n.t = now; n.last = now; n.kind = kind || 'hit'; n.label = '';
     return n;
   }
 
@@ -202,6 +202,17 @@
       case 'ward-break':
         ring(j, ev.x, ev.y, 8, 32, 0.28, ev.element === 'frost' ? 0x9fd8ff : ev.element === 'flame' ? 0xff7a3a : ev.element === 'spark' ? 0xf5e46a : 0x8fd34a, 2);
         return;
+      case 'slaughter':
+        if (ev.milestone) {
+          addTrauma(j, 0.24);
+          ring(j, ev.x, ev.y, 12, 90 + Math.min(40, (ev.n || 0) * 3), 0.45, ev.n >= 15 ? 0xffe08a : ev.n >= 10 ? 0xff5a3a : 0xffb070, 4);
+          emit(j, ev.x, ev.y, 18, 0xffb070, { speed: 220, life: 0.45, size: 4 });
+          var banner = addNumber(j, -1000 - (ev.n || 0), ev.x, ev.y - 28, ev.n || 0, true, j.time, 'slaughter');
+          if (banner) banner.label = ev.name || ('×' + ev.n);
+        } else if ((ev.n || 0) >= 2) {
+          ring(j, ev.x, ev.y, 6, 18 + Math.min(24, ev.n * 2), 0.2, 0xcbb98a, 2);
+        }
+        return;
       case 'hit':
       case 'crit':
         if (ev.crush > 0) addNumber(j, ev.dst, ev.x, ev.y - 12, ev.crush, false, j.time, 'crush');
@@ -216,7 +227,8 @@
         }
         if (ev.srcKind === 'player') { // the hunter's own swing
           var bite = ev.element === 'flame' ? 0xff7a3a : ev.element === 'frost' ? 0x9fd8ff : ev.element === 'spark' ? 0xf5e46a : ev.element === 'blight' ? C.poison : C.thorn;
-          j.flashes.set(ev.dst, ev.deadly ? 0.1 : 0.06); addTrauma(j, ev.deadly || ev.crush ? 0.14 : 0.05);
+          var hot = world && PB.Slaughter && PB.Slaughter.stacks(world) >= 5;
+          j.flashes.set(ev.dst, ev.deadly ? 0.1 : 0.06); addTrauma(j, (ev.deadly || ev.crush ? 0.14 : 0.05) + (hot ? 0.06 : 0));
           emit(j, ev.x, ev.y, ev.deadly ? 10 : 6, ev.deadly ? C.gold : bite, { speed: ev.deadly ? 240 : 190, life: 0.35, size: ev.deadly ? 4 : 3 });
           if (ev.crush) ring(j, ev.x, ev.y, 8, 36, 0.22, 0xff7a3a, 3);
           number(j, ev, ev.type === 'crit' || !!ev.deadly, ev.element || 'hit');
@@ -266,7 +278,8 @@
         if (p) ring(j, p.x, p.y, 14, 70, 0.35, 0xe6dcaa, 2);
         return;
       case 'thornlash':
-        j.swings.push({ x: ev.x, y: ev.y, angle: ev.angle, t: 0, life: ev.claw ? 0.2 : 0.16, hit: ev.hit, claw: !!ev.claw });
+        var lashHot = world && PB.Slaughter && PB.Slaughter.stacks(world) >= 5;
+        j.swings.push({ x: ev.x, y: ev.y, angle: ev.angle, t: 0, life: (ev.claw ? 0.2 : 0.16) * (lashHot ? 1.35 : 1), hit: ev.hit, claw: !!ev.claw });
         return;
       case 'zeal':
         j.swings.push({ x: ev.x, y: ev.y, angle: ev.angle, t: 0, life: 0.22, hit: ev.hit, zeal: true, strikes: ev.strikes || 1 });

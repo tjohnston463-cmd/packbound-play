@@ -137,6 +137,31 @@
     }
   }
 
+  // The breaches the packs walk out of. A short mark on the edge, not a label.
+  function drawGates(g, world) {
+    var d = world.dir, gates = d && d.gates, edge;
+    if (!gates) return;
+    g.save();
+    g.strokeStyle = 'rgba(140, 28, 18, 0.55)'; g.lineWidth = 3; g.lineCap = 'round';
+    for (edge in gates) {
+      var p = gates[edge];
+      g.beginPath();
+      if (edge === '0' || edge === '2') { g.moveTo(p.x - 34, p.y); g.lineTo(p.x + 34, p.y); }
+      else { g.moveTo(p.x, p.y - 34); g.lineTo(p.x, p.y + 34); }
+      g.stroke();
+    }
+    g.restore();
+  }
+
+  function drawSlaughterRing(g, world) {
+    if (!PB.Slaughter) return;
+    var n = PB.Slaughter.stacks(world);
+    if (!n) return;
+    var p = world.anchor || world.player;
+    var col = n >= 15 ? 'rgba(255,220,140,0.8)' : n >= 10 ? 'rgba(255,70,40,0.75)' : n >= 5 ? 'rgba(255,160,70,0.7)' : 'rgba(210,190,150,0.4)';
+    ring(g, p.x, p.y, 18 + n * 2.4, col, n >= 5 ? 3 : 1.5, n >= 5 ? null : [4, 5]);
+  }
+
   function drawOrders(g, world) {
     var pack = world.pack, o = pack.order;
     if (o.kind === 'hold') { // spec §5: a green ring marks the 120px circle; the faint one is the +40px engage edge
@@ -880,11 +905,13 @@
       var n = j.numbers[i];
       if (!n.active) continue;
       var age = j.time - n.t, k = age / PB.Juice.NUM_LIFE;
-      if (n.kind === 'ward') {
+      if (n.kind === 'ward' || n.kind === 'slaughter') {
         g.globalAlpha = k > 0.7 ? Math.max(0, (1 - k) / 0.3) : 1;
-        g.font = 'bold 16px ' + SERIF; g.textAlign = 'center'; g.lineWidth = 3; g.strokeStyle = 'rgba(10,6,4,0.9)'; g.fillStyle = '#e8d8a8';
+        g.font = 'bold ' + (n.kind === 'slaughter' ? 20 : 16) + 'px ' + SERIF; g.textAlign = 'center'; g.lineWidth = 3; g.strokeStyle = 'rgba(10,6,4,0.9)';
+        g.fillStyle = n.kind === 'slaughter' ? '#ffb070' : '#e8d8a8';
         var wy = n.y - 18 - PB.Juice.numberRise(age);
-        g.strokeText('Ward', n.x, wy); g.fillText('Ward', n.x, wy); g.textAlign = 'left';
+        var word = n.kind === 'slaughter' ? (n.label || ('×' + Math.round(n.amount))) : 'Ward';
+        g.strokeText(word, n.x, wy); g.fillText(word, n.x, wy); g.textAlign = 'left';
         continue;
       }
       var text = String(Math.max(1, Math.round(n.amount))) + (n.crit ? '!' : '');
@@ -1017,6 +1044,8 @@
     drawCorpses(g, world, x0, y0);
     drawDrops(g, world, x0, y0, !!info.labels);
     drawGroundRings(g, world);
+    drawGates(g, world);
+    drawSlaughterRing(g, world);
     drawPrints(g, j);
     var ents = world.ents, pad = 80, list = R.list;
     list.length = 0;
