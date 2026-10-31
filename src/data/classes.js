@@ -1,5 +1,5 @@
-// Three callings. The Wildcaller (druid) is the original hunt. The Gravecaller and the Stormbinder
-// share the wood, the loot, the Moon and the altar, and they do not share a pack or a basic attack.
+// Four callings. The Wildcaller (druid) is the original hunt. The Gravecaller, the Stormbinder and the
+// Oathbound share the wood, the loot, the Moon and the altar, and they do not share a pack or a basic attack.
 // A calling's hunters carry a role (wolf, raven, bear, vine, spirit) so grove sets, rune words and
 // the synergy rules follow the job, not only the druid's animals. Old saves have no classId and load as druid.
 (function (PB) {
@@ -17,6 +17,7 @@
   var STORM = ['#6a78c8', '#242848', '#f5e46a'];
   var ASH = ['#c45a28', '#5a240e', '#ffd090'];
   var ICE = ['#b9d4ea', '#5a7e98', '#f4fbff'];
+  var OATH = ['#e6d7a8', '#6a5a32', '#fff6d4'];
 
   function summon(def) {
     PB.SUMMONS[def.id] = def;
@@ -60,6 +61,24 @@
     note: 'aura: the elementals hit harder. Little mending. You are the heal.',
     paint: ['spirit', STORM, '#fff6c0', null] });
 
+  // --- Oathbound: you stand in the fight. A short oath holds the line. Zeal is the weapon. ---
+  summon({ id: 'squire', name: 'Squire', key: '1', cost: 22, cap: 2, hp: 96, dmg: [10, 15], atk: 0.85, range: 28, speed: 200, r: 12, mass: 1.3, tags: ['squire'], ai: 'flank', role: 'wolf',
+    note: 'a short line. Crits Marked prey. Zeal calls them in.',
+    paint: ['wolf', ['#c8b48a', '#6a5430', '#f4e6c0'], '#ffe9a0', null] });
+  summon({ id: 'judicar', name: 'Judicar', key: '2', cost: 16, cap: 2, hp: 36, dmg: [8, 12], atk: 0.9, range: 170, speed: 230, r: 9, mass: 0.5, tags: ['judicar'], ai: 'dart', flying: true, role: 'raven',
+    note: 'a hammer that orbits and Marks.',
+    paint: ['raven', ['#d8c48a', '#7a6840', '#fff6d0'], '#fff6c0', null] });
+  summon({ id: 'bulwark', name: 'Bulwark', key: '3', cost: 48, cap: 1, hp: 440, dmg: [16, 24], atk: 1.5, range: 34, speed: 118, r: 22, mass: 5.2, tags: ['bulwark'], ai: 'guard', role: 'bear',
+    note: 'the shield. Taunts. Mauls knock back. You stand beside it.',
+    paint: ['bear', ['#d8d0c0', '#6a6458', '#fff8e8'], '#ffe9a0', 'halo'] });
+  summon({ id: 'sanctum', name: 'Sanctum', key: '4', cost: 20, cap: 2, hp: 96, dmg: [4, 7], atk: 2.8, range: 140, speed: 0, r: 14, mass: 99, tags: ['sanctum'], ai: 'rooted', rooted: true, role: 'vine',
+    note: 'planted at the cursor. Consecrated ground. Holds.',
+    paint: ['vine', ['#c8b070', '#6a5428', '#fff0c0'], '#ffe9a0', 'flower'] });
+  summon({ id: 'banner', name: 'Banner', key: '5', cost: 30, cap: 1, hp: 64, dmg: [0, 0], atk: 0, range: 200, speed: 175, r: 11, mass: 0.6, tags: ['banner'], ai: 'aura', flying: true, role: 'spirit',
+    aura: { radius: 200, regen: 2.2, dmgInc: 0.12 },
+    note: 'aura: the oath hits harder and mends a little.',
+    paint: ['spirit', OATH, '#fff6c0', 'halo'] });
+
   // Evolutions keep the druid branch mods (lunge, leap, mark, quake) under new names, so the same AI hooks fire.
   var EVO_NAME = {
     skeleton: { A: ['Reaver', 'Grave Reaver'], B: ['Shield Bone', 'Crypt Guard'] },
@@ -71,9 +90,14 @@
     wisp: { A: ['Seer', 'Omen Wisp'], B: ['Razor', 'Storm Wisp'] },
     monolith: { A: ['Bulwark', 'Glacier'], B: ['Ravager', 'Berserk Ice'] },
     hydra: { A: ['Strangler', 'Devourer'], B: ['Bloom', 'Brood Mother'] },
-    nimbus: { A: ['Gale Sage', 'Elder Gale'], B: ['Wolverine', 'Blood Storm'] }
+    nimbus: { A: ['Gale Sage', 'Elder Gale'], B: ['Wolverine', 'Blood Storm'] },
+    squire: { A: ['Knight', 'Oath Knight'], B: ['Warder', 'Hearth Knight'] },
+    judicar: { A: ['Cantor', 'Omen Hammer'], B: ['Razor', 'Storm Hammer'] },
+    bulwark: { A: ['Bulwark', 'Citadel'], B: ['Ravager', 'Berserk Mail'] },
+    sanctum: { A: ['Strangler', 'Devourer'], B: ['Bloom', 'Mother Chapel'] },
+    banner: { A: ['Chaplain', 'Elder Banner'], B: ['War Hymn', 'Blood Banner'] }
   };
-  var KIN_OF = { skeleton: 'wolf', mage: 'raven', golem: 'bear', spike: 'vine', priest: 'spirit', ember: 'wolf', wisp: 'raven', monolith: 'bear', hydra: 'vine', nimbus: 'spirit' };
+  var KIN_OF = { skeleton: 'wolf', mage: 'raven', golem: 'bear', spike: 'vine', priest: 'spirit', ember: 'wolf', wisp: 'raven', monolith: 'bear', hydra: 'vine', nimbus: 'spirit', squire: 'wolf', judicar: 'raven', bulwark: 'bear', sanctum: 'vine', banner: 'spirit' };
   Object.keys(EVO_NAME).forEach(function (type) {
     var src = PB.EVOLUTIONS[KIN_OF[type]], names = EVO_NAME[type], out = {};
     ['A', 'B'].forEach(function (br) {
@@ -95,6 +119,11 @@
   PB.NAME_PARTS.monolith = [['Rime', 'Hoar', 'Glac', 'Nun'], ['stone', 'pillar', 'frost', 'at']];
   PB.NAME_PARTS.hydra = [['Pyra', 'Sulf', 'Cind', 'Ves'], ['hydra', 'maw', 'coil', 'spit']];
   PB.NAME_PARTS.nimbus = [['Nimbus', 'Cumul', 'Stratus', 'Gale'], ['cloud', 'heart', 'ion', 'a']];
+  PB.NAME_PARTS.squire = [['Sir', 'Cal', 'Bren', 'Ald'], ['en', 'ric', 'hold', 'mark']];
+  PB.NAME_PARTS.judicar = [['Jud', 'Mal', 'Cor', 'Ves'], ['icar', 'eth', 'hammer', 'is']];
+  PB.NAME_PARTS.bulwark = [['Bast', 'Ward', 'Helm', 'Dun'], ['ion', 'wall', 'mail', 'keep']];
+  PB.NAME_PARTS.sanctum = [['Chapel', 'Nave', 'Relic', 'Pyx'], ['ground', 'well', 'stone', 'light']];
+  PB.NAME_PARTS.banner = [['Gold', 'Hymn', 'Pale', 'Oath'], ['banner', 'light', 'standard', 'a']];
 
   // Each other calling gets the druid's ten crosses and five alphas, under new names.
   // mirror points at the druid fusion so the existing ability hooks run. The druid rows stay as they are.
@@ -114,17 +143,24 @@
       stormhound: ['Cinder Hound', 'cinderhound'], direwarg: ['Storm Brute', 'stormbrute'], thornpelt: ['Ashpelt', 'ashpelt'],
       wraithwolf: ['Pale Ember', 'paleember'], owlbear: ['Glacier Beast', 'glacierbeast'], carrionbloom: ['Pyrebloom', 'pyrebloom'],
       omen: ['Storm Sign', 'stormsign'], rootwarden: ['World Pillar', 'worldpillar'], eldersbear: ['Elder Stone', 'elderstone'], lifebloom: ['Mana Well', 'manawell']
+    },
+    pala: {
+      stormhound: ['Oath Hound', 'oathhound'], direwarg: ['War Brute', 'warbrute'], thornpelt: ['Thorn Oath', 'thornoath'],
+      wraithwolf: ['Pale Squire', 'palesquire'], owlbear: ['Judgment', 'judgment'], carrionbloom: ['Reliquary', 'reliquary'],
+      omen: ['Canticle', 'canticle'], rootwarden: ['Chapel Warden', 'chapelwarden'], eldersbear: ['Elder Aegis', 'elderaegis'], lifebloom: ['Mercy Well', 'mercywell']
     }
   };
   var ALPHA_NAMES = {
     necro: { wolf: ['Shambler', 'shambler'], raven: ['College', 'bonecollege'], bear: ['Colossus', 'colossus'], vine: ['Spike Grove', 'spikegrove'], spirit: ['Twin Priest', 'twinpriest'] },
-    sorc: { wolf: ['Alpha Cinder', 'alphacinder'], raven: ['Tempest', 'tempest'], bear: ['Obelisk', 'obelisk'], vine: ['Hydra Brood', 'hydrabrood'], spirit: ['Twin Storm', 'twinstorm'] }
+    sorc: { wolf: ['Alpha Cinder', 'alphacinder'], raven: ['Tempest', 'tempest'], bear: ['Obelisk', 'obelisk'], vine: ['Hydra Brood', 'hydrabrood'], spirit: ['Twin Storm', 'twinstorm'] },
+    pala: { wolf: ['Captain', 'captain'], raven: ['Choir', 'choir'], bear: ['Bastion', 'bastion'], vine: ['Sanctum Grove', 'sanctumgrove'], spirit: ['Twin Banner', 'twinbanner'] }
   };
   var CLASS_KIN = {
     necro: { wolf: 'skeleton', raven: 'mage', bear: 'golem', vine: 'spike', spirit: 'priest' },
-    sorc: { wolf: 'ember', raven: 'wisp', bear: 'monolith', vine: 'hydra', spirit: 'nimbus' }
+    sorc: { wolf: 'ember', raven: 'wisp', bear: 'monolith', vine: 'hydra', spirit: 'nimbus' },
+    pala: { wolf: 'squire', raven: 'judicar', bear: 'bulwark', vine: 'sanctum', spirit: 'banner' }
   };
-  var CLASS_PAL = { necro: BONE, sorc: STORM };
+  var CLASS_PAL = { necro: BONE, sorc: STORM, pala: OATH };
 
   function addMirrorFusions(classId) {
     var kin = CLASS_KIN[classId], keys = Object.keys(PB.FUSIONS), i;
@@ -138,7 +174,7 @@
       if (src.id === 'rootwarden') row.sapType = kin.vine;
       row.ability = src.ability;
       PB.FUSIONS[nk] = row;
-      paint(row.id, FAM[src.id] || 'blob', CLASS_PAL[classId], classId === 'sorc' ? '#fff6c0' : '#f4efe2', null);
+      paint(row.id, FAM[src.id] || 'blob', CLASS_PAL[classId], classId === 'necro' ? '#f4efe2' : '#fff6c0', null);
     }
     ['wolf', 'raven', 'bear', 'vine', 'spirit'].forEach(function (role) {
       var type = kin[role], srcA = PB.ALPHA[role], names = ALPHA_NAMES[classId][role];
@@ -149,9 +185,11 @@
   }
   addMirrorFusions('necro');
   addMirrorFusions('sorc');
+  addMirrorFusions('pala');
 
   paint('necro', 'robed', ['#2a2438', '#120e18', '#e4d4ff'], '#d0b0ff', null);
   paint('sorc', 'robed', ['#1c2448', '#0c1024', '#f5e46a'], '#fff6c0', null);
+  paint('pala', 'robed', ['#3a3424', '#1a160e', '#ffe9a0'], '#fff6c0', 'halo');
 
   PB.FUSION_BY_ID = {};
   Object.keys(PB.FUSIONS).forEach(function (k) { PB.FUSION_BY_ID[PB.FUSIONS[k].id] = PB.FUSIONS[k]; });
@@ -220,6 +258,31 @@
   node('sorc', 'staticfield', 'arcane', 3, 3, 'Static Field', '+20% Chorus burst damage per rank', function (r) { return { chorusDmg: 20 * r }; }, ['shieldsorc']);
   node('sorc', 'perfectstorm', 'arcane', 4, 1, 'Perfect Storm', 'KEYSTONE: the Wild Hunt calls every Echo, and refunds 30% Chorus.', function () { return { behaviors: { eternal: 1 } }; }, ['loresorc']);
 
+  // Oathbound. Zeal is the weapon. Aegis is the wall. Oath is the banner, the curse and the Chorus.
+  node('pala', 'linecall', 'zeal', 1, 2, 'Call the Line', '+1 squire cap per rank, and +6% squire damage. A short line, not a horde.', function (r) { return { squireCap: r, squireDmg: 6 * r }; });
+  node('pala', 'zeal', 'zeal', 1, 5, 'Zeal', '+4 Zeal damage per rank. Rank 2, 3 and 4 each add a strike. You are in the swing.', function (r) { return { zealDmg: 4 * r, zealStrikes: Math.min(3, Math.max(0, r - 1)) }; });
+  node('pala', 'shieldwall', 'zeal', 2, 3, 'Shield Wall', 'Squires deal more for each other squire alive, and each rank feeds Howl.', function (r) { return { packTactics: 3 * r }; }, ['linecall']);
+  node('pala', 'bloodprice', 'zeal', 3, 3, 'Blood Price', 'Zeal returns 2 life per rank.', function (r) { return { zealLeech: 2 * r }; });
+  node('pala', 'sacrifice', 'zeal', 4, 1, 'Sacrifice', 'KEYSTONE: the first strike hits twice as hard and costs 4 life. It will not drop you.', function () { return { behaviors: { sacrifice: 1 } }; }, ['zeal']);
+
+  node('pala', 'plate', 'aegis', 1, 5, 'Plate', '+4 armor per rank. You are harder to move.', function (r) { return { armor: 4 * r }; });
+  node('pala', 'consecrate', 'aegis', 1, 2, 'Consecrate', '+1 sanctum cap per rank. The ground holds a little longer.', function (r) { return { sanctumCap: r, rootDur: 0.25 * r }; });
+  node('pala', 'aegis', 'aegis', 2, 3, 'Aegis', '+15% bulwark life and damage per rank. Rank 3 raises a second bulwark. Each rank hardens the guard.', function (r) { return { bulwarkHp: 15 * r, bulwarkDmg: 15 * r, bulwarkCap: r >= 3 ? 1 : 0 }; }, ['plate']);
+  node('pala', 'smite', 'aegis', 2, 1, 'Smite', 'Bulwark hits stun for 0.5s', function () { return { behaviors: { maulstun: 1 } }; }, ['consecrate']);
+  node('pala', 'thorns', 'aegis', 3, 3, 'Thorns', '+6% summon life per rank. The wall shares its hide.', function (r) { return { packHp: 6 * r }; });
+  node('pala', 'holyground', 'aegis', 3, 1, 'Holy Ground', 'A landed Zeal mends the oath beside you.', function () { return { behaviors: { sanctified: 1 } }; }, ['consecrate']);
+  node('pala', 'redoubt', 'aegis', 4, 1, 'Redoubt', 'KEYSTONE: +10 armor, and Zeal mends the oath for at least 4 life.', function () { return { behaviors: { redoubt: 1 }, armor: 10 }; }, ['aegis']);
+
+  node('pala', 'prayer', 'oath', 1, 5, 'Prayer', '+10% Faith regen per rank. Each rank also feeds the Chorus.', function (r) { return { spiritRegen: 10 * r }; });
+  node('pala', 'oathvoice', 'oath', 1, 3, 'Clear Oath', '8% faster command cooldowns per rank', function (r) { return { cmdCdr: 8 * r }; });
+  node('pala', 'wideroath', 'oath', 2, 3, 'Wider Oath', '+15% aura radius per rank', function (r) { return { auraRadius: 15 * r }; }, ['prayer']);
+  node('pala', 'oathrally', 'oath', 2, 3, 'Rally of the Oath', 'Rally shield +10% of max life per rank', function (r) { return { rallyShield: 10 * r }; }, ['oathvoice']);
+  node('pala', 'conviction', 'oath', 3, 3, 'Conviction', 'Zeal curses. +1.2s per rank. The cursed body takes more from everyone.', function (r) { return { conviction: 1.2 * r }; });
+  node('pala', 'martyr', 'oath', 3, 3, 'Martyr', '+4s inside a summon and +10% possessed damage per rank. Tab is the same key.', function (r) { return { skinDur: 4 * r, skinDmg: 10 * r }; });
+  node('pala', 'oathlore', 'oath', 3, 3, 'Oath Lore', '+10% fused summon stats per rank. Rank 3: +1 fusion slot', function (r) { return { fusedStats: 10 * r, fusionSlots: r >= 3 ? 1 : 0 }; }, ['wideroath']);
+  node('pala', 'cantor', 'oath', 3, 3, 'Cantor', '+20% Chorus burst damage per rank', function (r) { return { chorusDmg: 20 * r }; }, ['oathrally']);
+  node('pala', 'fanaticism', 'oath', 4, 1, 'Fanaticism', 'KEYSTONE: Zeal marks the whole arc, the whole pack swings with you, and they swing faster.', function () { return { behaviors: { fanaticism: 1 }, packAtkSpd: 12 }; }, ['oathlore']);
+
   PB.SKILL_BY_ID = {};
   PB.SKILLS.forEach(function (s) { PB.SKILL_BY_ID[s.id] = s; });
 
@@ -233,18 +296,26 @@
     { from: 'cinders', stat: 'boltDmg', per: 3 },
     { from: 'glacier', stat: 'bearGuard', per: 5 },
     { from: 'chill', stat: 'monolithDmg', per: 6 },
-    { from: 'spring', stat: 'chorusDmg', per: 5 }
+    { from: 'spring', stat: 'chorusDmg', per: 5 },
+    { from: 'shieldwall', stat: 'howlDmg', per: 8 },
+    { from: 'zeal', stat: 'squireDmg', per: 4 },
+    { from: 'aegis', stat: 'bearGuard', per: 5 },
+    { from: 'plate', stat: 'bearHp', per: 4 },
+    { from: 'prayer', stat: 'chorusDmg', per: 5 },
+    { from: 'conviction', stat: 'zealDmg', per: 3 }
   ];
 
   PB.TREE_NAME = {
     fang: 'Fang', wingroot: 'Wing & Root', command: 'Command',
     bone: 'Bone', grave: 'Grave', rite: 'Rite',
-    flame: 'Flame', frost: 'Frost', arcane: 'Arcane'
+    flame: 'Flame', frost: 'Frost', arcane: 'Arcane',
+    zeal: 'Zeal', aegis: 'Aegis', oath: 'Oath'
   };
   PB.TREE_TEXT = {
     fang: 'wolves and the bear', wingroot: 'ravens and vines', command: 'spirits, orders, fusion',
     bone: 'skeletons, the golem, the spear', grave: 'mages and spikes', rite: 'the priest, orders, fusion',
-    flame: 'the fireball and the hydra', frost: 'the monolith', arcane: 'mana, form, the Chorus'
+    flame: 'the fireball and the hydra', frost: 'the monolith', arcane: 'mana, form, the Chorus',
+    zeal: 'the swing and the squires', aegis: 'the bulwark and the sanctum', oath: 'the banner, the curse, the Chorus'
   };
 
   var CLASSES = [
@@ -253,19 +324,25 @@
       attack: 'thornlash', attackName: 'Thornlash', attackText: 'Thornlash: a short whip cone. In menus: select',
       resource: 'Spirit', body: 'druid', glow: 'green', orb: ['#0c2a6a', '#4f8de0'],
       plantNote: '(the vine roots at the cursor)', moveText: 'Move the druid (or the summon you Skinwalk)',
-      blurb: 'The whip marks. The pack kills.', fantasy: 'You conduct the living wood. The whip tells them where to bite.' },
+      blurb: 'The whip marks. The pack kills.', pitch: 'You do not fight. You conduct.', fantasy: 'You conduct the living wood. The whip tells them where to bite.' },
     { id: 'necro', name: 'Necromancer', title: 'Gravecaller', order: ['skeleton', 'mage', 'golem', 'spike', 'priest'], trees: ['bone', 'grave', 'rite'],
       kin: CLASS_KIN.necro,
       attack: 'bonespear', attackName: 'Bone Spear', attackText: 'Bone Spear: a piercing line. It curses. In menus: select',
       resource: 'Essence', body: 'necro', glow: 'purple', orb: ['#241433', '#9a6ad0'],
       plantNote: '(the spike roots at the cursor)', moveText: 'Move the necromancer (or the summon you possess)',
-      blurb: 'Pierce. Curse. The dead do the rest.', fantasy: 'Bone Spear curses a line. Skeletons answer it. Grove gear follows your hunters.' },
+      blurb: 'Pierce. Curse. The dead answer.', pitch: 'The spear curses. The dead answer.', fantasy: 'Bone Spear curses a line. Skeletons answer it. Grove gear follows your hunters.' },
     { id: 'sorc', name: 'Sorceress', title: 'Stormbinder', order: ['ember', 'wisp', 'monolith', 'hydra', 'nimbus'], trees: ['flame', 'frost', 'arcane'],
       kin: CLASS_KIN.sorc,
       attack: 'fireball', attackName: 'Fireball', attackText: 'Fireball: you are the damage. It bursts. In menus: select',
       resource: 'Mana', body: 'sorc', glow: 'gold', orb: ['#3a2410', '#e8873a'],
       plantNote: '(the hydra roots at the cursor)', moveText: 'Move the sorceress (or the summon you become)',
-      blurb: 'You are the damage. They feed the blast.', fantasy: 'Fireball is the weapon. Hydra ranks feed it. The monolith is the wall.' }
+      blurb: 'You are the damage. They feed it.', pitch: 'You are the blast. They feed it.', fantasy: 'Fireball is the weapon. Hydra ranks feed it. The monolith is the wall.' },
+    { id: 'pala', name: 'Paladin', title: 'Oathbound', order: ['squire', 'judicar', 'bulwark', 'sanctum', 'banner'], trees: ['zeal', 'aegis', 'oath'],
+      kin: CLASS_KIN.pala,
+      attack: 'zeal', attackName: 'Zeal', attackText: 'Zeal: a heavy close swing. Ranks add strikes. In menus: select',
+      resource: 'Faith', body: 'pala', glow: 'gold', orb: ['#3a3018', '#e6c56a'],
+      plantNote: '(the sanctum roots at the cursor)', moveText: 'Move the paladin (or the summon you inhabit)',
+      blurb: 'You stand in the fight.', pitch: 'You stand in the fight. The oath holds.', fantasy: 'Zeal is the weapon. The bulwark is the wall. A short oath, not a horde.' }
   ];
   PB.CLASS_BY_ID = {};
   PB.CLASS_ORDER = CLASSES.map(function (c) { PB.CLASS_BY_ID[c.id] = c; return c.id; });
@@ -279,6 +356,20 @@
     var k = of(save).kin;
     return (k && k[role]) || role;
   }
+  // The free muster at a zone start. Roles follow the calling. A cap stops a third squire.
+  function startTypes(save) {
+    var c = of(save), want = [c.kin.wolf, c.kin.wolf, c.kin.wolf, c.kin.raven, c.kin.raven, c.kin.bear, c.kin.spirit];
+    var counts = {}, out = [], i, t;
+    for (i = 0; i < want.length; i++) {
+      t = want[i];
+      if (!PB.SUMMONS[t]) continue;
+      counts[t] = counts[t] || 0;
+      if (counts[t] >= PB.SUMMONS[t].cap) continue;
+      counts[t]++;
+      out.push(t);
+    }
+    return out;
+  }
 
   PB.Classes = {
     get: get,
@@ -287,6 +378,7 @@
     normalize: function (id) { return get(id) ? id : 'druid'; },
     order: function (save) { return of(save).order.slice(); },
     trees: function (save) { return of(save).trees.slice(); },
-    kinType: kinType
+    kinType: kinType,
+    startTypes: startTypes
   };
 })(globalThis.PB = globalThis.PB || {});

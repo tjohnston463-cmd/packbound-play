@@ -9,8 +9,9 @@
   var S = { pause: false, anvil: false, drop: false, whet: false };
   var SLOT_POS = { mask: [150, 70], staff: [40, 170], pelt: [150, 170], talisman: [260, 170], charm1: [95, 280], charm2: [205, 280] };
   var SLOT_NAME = { staff: 'Staff', mask: 'Mask', pelt: 'Pelt', talisman: 'Talisman', charm1: 'Charm', charm2: 'Charm' };
-  var STAT_TEXT = { thornDmg: 'Thornlash +{v} damage', spiritMax: '+{v} max Spirit', armor: '+{v} armor', packHp: '+{v}% summon life',
-                    wolfDmg: '+{v}% wolf damage', ravenDmg: '+{v}% raven damage', vineDmg: '+{v}% vine damage' };
+  var STAT_TEXT = { thornDmg: 'Attack +{v} damage', spiritMax: '+{v} max Spirit', armor: '+{v} armor', packHp: '+{v}% summon life',
+                    wolfDmg: '+{v}% wolf damage', ravenDmg: '+{v}% raven damage', vineDmg: '+{v}% vine damage',
+                    zealDmg: 'Zeal +{v} damage', zealLeech: 'Zeal returns {v} life' };
 
   function rarityColor(r) { for (var i = 0; i < PB.RARITIES.length; i++) if (PB.RARITIES[i].id === r) return PB.RARITIES[i].color; return '#d8d8d8'; }
   function baseOf(item) { for (var i = 0; i < PB.ITEM_BASES.length; i++) if (PB.ITEM_BASES[i].id === item.base) return PB.ITEM_BASES[i]; return null; }
@@ -26,7 +27,7 @@
       var impl = (STAT_TEXT[k] || k + ' +{v}').replace('{v}', b.implicit[k]);
       if (k === 'thornDmg') {
         var lash = Math.min(5, Math.floor(b.implicit[k] / 4));
-        if (lash) impl += ' · lash step ' + lash;
+        if (lash) impl += ' · step ' + lash;
       }
       out.push({ text: impl, color: '#c8c8c8' });
     }

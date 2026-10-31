@@ -27,6 +27,14 @@
     ], partial: [
       { n: 2, stats: { chorusDmg: 10, spiritRegen: 10 }, text: '(2) Chorus hits harder and Spirit returns faster.' },
       { n: 3, behaviors: { hearthwake: 1 }, text: '(3) A Chorus heals the pack for 8% life and gives back 8 Spirit.' }
+    ] },
+    { id: 'oath', name: 'The Oath', cls: 'pala', pieces: [
+      { id: 'oathstaff', base: 'ashstaff', name: 'Staff of the Oath', ilvl: 4, stats: { zealDmg: 8 }, text: '+8 Zeal damage' },
+      { id: 'oathpelt', base: 'hidepelt', name: 'Mail of the Oath', ilvl: 5, stats: { armor: 6 }, text: '+6 armor' },
+      { id: 'oathcharm', base: 'fangcharm', name: 'Seal of the Oath', ilvl: 6, stats: { bearDmg: 12 }, text: '+12% bear damage. The bulwark is that job.' }
+    ], partial: [
+      { n: 2, stats: { zealLeech: 4 }, text: '(2) Zeal returns 4 life.' },
+      { n: 3, behaviors: { oathset: 1 }, text: '(3) Zeal curses for 4s. The marked body takes more from you and the pack.' }
     ] }
   ];
   PB.SET_BY_ID = {};
@@ -38,9 +46,10 @@
 
   var CHASE = 0.7, DEN_R = 180, WREATH_R = 260, HEAL = 0.08, SPIRIT_BACK = 8;
 
-  function eligible(ilvl) {
-    var out = [];
+  function eligible(ilvl, src) {
+    var cls = src && src.player && src.player.classId, out = [];
     PB.SETS.forEach(function (set) {
+      if (set.cls && set.cls !== cls) return;
       set.pieces.forEach(function (p) { if (p.ilvl <= ilvl) out.push(p); });
     });
     return out;
@@ -56,7 +65,7 @@
   // A started set is fed its missing pieces most of the time. Anything you do not own can still fall.
   // Dupes wait until every piece this zone can drop is already in the bag or on the body.
   function pick(rng, ilvl, src) {
-    var pool = eligible(ilvl);
+    var pool = eligible(ilvl, src);
     if (!pool.length) return null;
     var owned = ownedIds(src), started = {}, missing = [], chase = [], i;
     for (i = 0; i < pool.length; i++) if (owned[pool[i].id]) started[pool[i].setId] = true;

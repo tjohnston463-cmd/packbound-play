@@ -58,7 +58,8 @@
     { from: 'keeneyes', stat: 'markCrit', per: 5 },
     { from: 'ursine', stat: 'bearGuard', per: 5 },
     { from: 'blight', stat: 'rootDmg', per: 10 },
-    { from: 'wellspring', stat: 'chorusDmg', per: 5 }
+    { from: 'wellspring', stat: 'chorusDmg', per: 5 },
+    { from: 'wereclaw', stat: 'wolfDmg', per: 5 }
   ];
   (PB.CLASS_SYNERGIES || []).forEach(function (s) { PB.SKILL_SYNERGIES.push(s); });
 

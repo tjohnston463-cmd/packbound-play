@@ -254,7 +254,11 @@
         if (p) ring(j, p.x, p.y, 14, 70, 0.35, 0xe6dcaa, 2);
         return;
       case 'thornlash':
-        j.swings.push({ x: ev.x, y: ev.y, angle: ev.angle, t: 0, life: 0.16, hit: ev.hit });
+        j.swings.push({ x: ev.x, y: ev.y, angle: ev.angle, t: 0, life: ev.claw ? 0.2 : 0.16, hit: ev.hit, claw: !!ev.claw });
+        return;
+      case 'zeal':
+        j.swings.push({ x: ev.x, y: ev.y, angle: ev.angle, t: 0, life: 0.22, hit: ev.hit, zeal: true, strikes: ev.strikes || 1 });
+        if (ev.hit) ring(j, ev.x, ev.y, 18, 78, 0.28, 0xffe0a0, 3);
         return;
       case 'bonespear':
         j.swings.push({ x: ev.x, y: ev.y, x2: ev.x2, y2: ev.y2, bolt: false, color: '#f4efe2', t: 0, life: 0.18, hit: ev.hit });

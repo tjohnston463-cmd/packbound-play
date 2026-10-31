@@ -85,7 +85,8 @@
       rarity = 'rare';
     }
     if (rarity === 'unique' && !slot) {
-      var uniques = PB.UNIQUES.filter(function (u) { return u.ilvl <= ilvl; });
+      var wearer = uidSource && uidSource.player && uidSource.player.classId;
+      var uniques = PB.UNIQUES.filter(function (u) { return u.ilvl <= ilvl && (!u.cls || u.cls === wearer); });
       if (uniques.length) {
         var u = rng.pick(uniques), ub = PB.BASE_BY_ID[u.base];
         item = { uid: uidSource.nextItemId++, base: ub.id, slot: ub.slot, rarity: 'unique', ilvl: ilvl, affixes: [], sockets: [], unique: u.id, set: null, name: u.name };

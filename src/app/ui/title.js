@@ -92,24 +92,30 @@
       var x0 = cx - 230 + i * 18, yy = y + 104 + i * 7;
       g.lineWidth = 4 - i; g.beginPath(); g.moveTo(x0, yy); g.quadraticCurveTo(cx, yy - 10 + i * 3, cx + 230 - i * 22, yy - 4); g.stroke();
     }
-    UI.text(g, 'You do not fight. You conduct.', cx, y + 128, 'italic 18px ' + UI.FACE, 'rgba(239,230,204,0.75)', 'center');
+    var pitch = (PB.Classes.get(T.classId) || {}).pitch || 'You do not fight. You conduct.';
+    UI.text(g, pitch, cx, y + 128, 'italic 18px ' + UI.FACE, 'rgba(239,230,204,0.75)', 'center');
     void t;
   }
 
   PB.Screens = PB.Screens || {};
   PB.Screens.title = {
     pausesSim: true,
-    enter: function () { T.confirmT = 0; },
+    enter: function (G) {
+      T.confirmT = 0;
+      var id = G && G.save && G.save.player && G.save.player.classId;
+      if (PB.Classes.get(id)) T.classId = id;
+    },
     draw: function (g, G, dt) {
       var UI = PB.UI, cx = LW / 2;
       T.t += dt || 0; if (T.confirmT > 0) T.confirmT -= dt || 0;
       drawScene(g, T.t);
       drawLogo(g, UI, T.t);
       var has = PB.Game.hasSave(), y = 368, bw = 260, bh = 44, gap = 54;
-      var ids = PB.Classes.ids(), cw = 236, cgap = 12, rowW = ids.length * cw + (ids.length - 1) * cgap, cx0 = cx - rowW / 2;
+      var ids = PB.Classes.ids(), cw = ids.length > 3 ? 188 : 236, cgap = ids.length > 3 ? 8 : 12;
+      var rowW = ids.length * cw + (ids.length - 1) * cgap, cx0 = cx - rowW / 2, ch = ids.length > 3 ? 56 : 52;
       ids.forEach(function (id, i) {
         var c = PB.Classes.get(id), on = T.classId === id;
-        if (UI.button(g, 'class-' + id, { x: cx0 + i * (cw + cgap), y: 300, w: cw, h: 52 }, c.title, { size: 16, active: on, tone: on ? 'moss' : 'ember', sub: c.blurb })) T.classId = id;
+        if (UI.button(g, 'class-' + id, { x: cx0 + i * (cw + cgap), y: 292, w: cw, h: ch }, c.title, { size: ids.length > 3 ? 14 : 16, active: on, tone: on ? 'moss' : 'ember', sub: c.blurb })) T.classId = id;
       });
       if (has && UI.button(g, 'continue', { x: cx - bw / 2, y: y, w: bw, h: bh }, 'Continue', { tone: 'moss', size: 18,
         sub: 'Level ' + G.save.player.level + ' · ' + G.save.roster.length + ' in the pack' })) PB.Game.continueGame();

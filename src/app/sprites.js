@@ -429,7 +429,7 @@
     var d = PB.SUMMONS[type] || PB.ENEMIES[type] || PB.BOSSES[type];
     if (d) return d.r;
     for (var k in PB.FUSIONS) if (PB.FUSIONS[k].id === type) return PB.FUSIONS[k].r;
-    if (type === 'necro' || type === 'sorc') return 12;
+    if (type === 'necro' || type === 'sorc' || type === 'pala') return 12;
     for (var t in PB.ALPHA) if (PB.ALPHA[t].id === type) return PB.SUMMONS[t].r * 1.25;
     return type === 'druid' ? 12 : 12;
   }
@@ -530,7 +530,7 @@
     var tex = grain(doc), bodies = {}, pack = [].concat(Object.keys(PB.SUMMONS), Object.keys(PB.FUSIONS).map(function (k) { return PB.FUSIONS[k].id; }),
       Object.keys(PB.ALPHA).map(function (k) { return PB.ALPHA[k].id; }));
     pack.forEach(function (t) { bodies[t] = sheetFor(doc, t, true, tex); });
-    Object.keys(PB.ENEMIES).concat(Object.keys(PB.BOSSES), ['druid', 'necro', 'sorc']).forEach(function (t) { bodies[t] = sheetFor(doc, t, false, tex); });
+    Object.keys(PB.ENEMIES).concat(Object.keys(PB.BOSSES), ['druid', 'necro', 'sorc', 'pala']).forEach(function (t) { bodies[t] = sheetFor(doc, t, false, tex); });
     var glows = {};
     [['gold', 'rgba(255,210,122,0.9)'], ['white', 'rgba(255,255,255,0.9)'], ['frost', 'rgba(160,220,255,0.9)'], ['ember', 'rgba(255,122,42,0.9)'],
      ['green', 'rgba(140,220,110,0.9)'], ['purple', 'rgba(190,140,255,0.9)'], ['red', 'rgba(255,80,60,0.9)']].forEach(function (p) { glows[p[0]] = glow(doc, p[1]); });
@@ -547,7 +547,7 @@
       out = out.concat(Object.keys(z.enemies), [z.boss]);
       if (i === 0) out = out.concat(Object.keys(PB.FUSIONS).map(function (k) { return PB.FUSIONS[k].id; }), Object.keys(PB.ALPHA).map(function (k) { return PB.ALPHA[k].id; }));
     });
-    out.push('necro', 'sorc');
+    out.push('necro', 'sorc', 'pala');
     return out;
   }
 

@@ -108,7 +108,7 @@
         UI.sprite(g, sm.mvp.type, LW / 2 - 150, 340, 64);
         UI.text(g, 'MVP: ' + sm.mvp.name, LW / 2 - 100, 318, UI.font(20, true), C.gold);
         UI.text(g, sm.mvp.dmg + ' damage this zone', LW / 2 - 100, 346, UI.font(14), C.dim);
-      } else UI.text(g, 'MVP: the druid', LW / 2, 330, UI.font(18, true), C.gold, 'center');
+      } else UI.text(g, 'MVP: the ' + PB.Classes.of(G.save).title, LW / 2, 330, UI.font(18, true), C.gold, 'center');
       remembers(g, UI, sm, 400, 7); // 7 rows end at y 548, clear of the camp line at 576
       loot(g, UI, sm, LW - 250, 214);
       var save = G.save, next = Math.min(save.progress.unlockedZone, last), moon = d ? d.moon : 0;

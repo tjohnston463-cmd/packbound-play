@@ -5,7 +5,6 @@
 (function (PB) {
   'use strict';
   var STAT_CAP = 3600;
-  var START_PACK = ['wolf', 'wolf', 'wolf', 'raven', 'raven', 'bear', 'spirit'];
 
   var G = {
     screen: 'boot', world: null, loop: null, q: null, seed: 1, frames: 0, kills: 0,
@@ -31,7 +30,8 @@
     if (zone === undefined) zone = Math.min(save.progress.unlockedZone, PB.ZONES.length - 1);
     var w = PB.World.createWorld({ seed: G.seed, save: save, zone: zone, mods: PB.Mods.build(save) });
     PB.Director.start(w, zone, moon || 0);
-    START_PACK.forEach(function (t, i) { var a = i / START_PACK.length * PB.M.TAU; PB.Roster.summon(w, t, w.player.x + Math.cos(a) * 40, w.player.y + Math.sin(a) * 40); });
+    var muster = PB.Classes.startTypes(save);
+    muster.forEach(function (t, i) { var a = i / muster.length * PB.M.TAU; PB.Roster.summon(w, t, w.player.x + Math.cos(a) * 40, w.player.y + Math.sin(a) * 40); });
     PB.Events.drain(w.events, function () {}); // the free muster is not news
     G.world = w; G.save = save; G.sandbox = false; G.kills = 0; G.banner = null; G.downT = 0; G.endT = 0;
     G.juice = PB.Juice.create(); G.toasts = []; G.benchParticles = 0;
@@ -45,7 +45,10 @@
     if (PB.Input.reset) PB.Input.reset();
     PB.Render.follow(w, true);
     toast(PB.ZONES[zone].name + (moon ? ' (Moon ' + moon + ')' : '') + ': five waves, then ' + PB.BOSSES[PB.ZONES[zone].boss].name);
-    if (!save.stats || save.stats.kills < 30) toast('Hold the mouse to lash. Space dodges. 1 calls a wolf. Right-click focuses the pack.');
+    if (!save.stats || save.stats.kills < 30) {
+      var calling = PB.Classes.of(save), first = PB.SUMMONS[calling.order[0]];
+      toast('Hold the mouse for ' + calling.attackName + '. Space dodges. 1 calls a ' + first.name + '. Right-click focuses the pack.');
+    }
     persist('zone');
     return w;
   }

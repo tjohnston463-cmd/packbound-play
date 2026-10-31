@@ -44,10 +44,13 @@
   function thornlash(world, p, input) {
     var a = Math.atan2(input.aim.y - p.y, input.aim.x - p.x), td = world.mods.stats.thornDmg || 0, hit = false;
     p.facing = a; p.lashCd = lashCooldown(world.mods.stats);
-    var stats = world.mods.stats || {}, packN = world.counts.summon || 0;
+    var stats = world.mods.stats || {}, packN = world.counts.summon || 0, beh = world.mods.behaviors || {};
     var bonus = packN + (stats.packTactics || 0);
     var markFor = 2 + (stats.markDur || 0);
-    var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [LASH_DMG[0] + td + bonus, LASH_DMG[1] + td + bonus], critChance: 0.05, auraDmgInc: p.auraDmgInc || 0 };
+    var were = stats.wereRank || 0;
+    if (beh.wereheart) were += 1;
+    var claw = were > 0 ? (1 + 0.18 * were) : 1;
+    var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [(LASH_DMG[0] + td + bonus) * claw, (LASH_DMG[1] + td + bonus) * claw], critChance: 0.05, auraDmgInc: p.auraDmgInc || 0 };
     var ents = world.ents, hits = [], i, e, primary = null, best = Infinity;
     for (i = 0; i < ents.length; i++) {
       e = ents[i];
@@ -74,11 +77,15 @@
       PB.World.knock(e, p.x, p.y, LASH_KNOCK);
       hit = true;
     }
+    if (hit && were) {
+      var back = (stats.wereLeech || 0) + (beh.wereheart ? 6 : 0);
+      if (back) p.hp = Math.min(p.maxHp, p.hp + back);
+    }
     if (hit) {
       for (var s = 0; s < ents.length; s++) if (ents[s].kind === 'summon' && !ents[s].dead) ents[s].cd = 0; // they bite on your swing, not on their own timer
     }
-    PB.Events.emit(world.events, 'thornlash', { x: p.x, y: p.y, angle: a, hit: hit, primary: primary ? primary.id : 0 });
-    if (hit) PB.World.hitStop(world, LASH_STOP);
+    PB.Events.emit(world.events, 'thornlash', { x: p.x, y: p.y, angle: a, hit: hit, primary: primary ? primary.id : 0, claw: were > 0 });
+    if (hit) PB.World.hitStop(world, were ? 40 : LASH_STOP);
   }
 
   // A landed whip calls the soonest Den timer forward by a second.
@@ -109,13 +116,15 @@
   }
   function dashStrike(world, p) {
     var x0 = p.x, y0 = p.y, x1 = p.x + p.boundDir.x * BOUND_DIST, y1 = p.y + p.boundDir.y * BOUND_DIST, i;
-    var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [8, 12], critChance: 0.05 };
+    var charge = PB.Classes.of(world.save).attack === 'zeal';
+    var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: charge ? [14, 22] : [8, 12], critChance: 0.05 };
     for (i = 0; i < world.ents.length; i++) {
       var e = world.ents[i];
-      if (!isEnemy(e) || distToSeg(e.x, e.y, x0, y0, x1, y1) > e.r + 28) continue;
+      if (!isEnemy(e) || distToSeg(e.x, e.y, x0, y0, x1, y1) > e.r + (charge ? 36 : 28)) continue;
       e.lashed = 2; e.marked = Math.max(e.marked || 0, 2);
+      if (charge && !e.boss) e.frozenT = Math.max(e.frozenT || 0, 0.35);
       PB.World.damage(world, att, e);
-      PB.World.knock(e, x0, y0, 120);
+      PB.World.knock(e, x0, y0, charge ? 160 : 120);
     }
   }
 
@@ -287,10 +296,74 @@
     if (hit) PB.World.hitStop(world, 28);
   }
 
+  var ZEAL_R = 78, ZEAL_HALF = 55 * Math.PI / 180;
+
+  function inArc(p, a, e, reach, half) {
+    var dx = e.x - p.x, dy = e.y - p.y, d = Math.sqrt(dx * dx + dy * dy);
+    if (d > reach + e.r) return false;
+    if (d < 1) return true;
+    var slack = Math.asin(Math.min(1, e.r / d));
+    return Math.abs(PB.M.angleDiff(a, Math.atan2(dy, dx))) <= half + slack;
+  }
+
+  // Zeal: you stand in the fight. A short heavy arc, then more strikes as the skill ranks. The front line answers.
+  function zeal(world, p, input) {
+    var a = Math.atan2(input.aim.y - p.y, input.aim.x - p.x), st = world.mods.stats || {}, b = world.mods.behaviors || {};
+    p.facing = a;
+    p.lashCd = Math.max(0.32, 0.52 - Math.min(4, Math.floor((st.thornDmg || 0) / 5)) * 2 / 60);
+    var strikes = 1 + Math.min(3, st.zealStrikes || 0);
+    if (b.zealheart) strikes += 1;
+    var sac = 1;
+    if (b.sacrifice && p.hp > 1) { p.hp -= Math.min(4, p.hp - 1); sac = 2; }
+    var bonus = weaponBonus(world) + (st.zealDmg || 0);
+    var ents = world.ents, hits = [], i, e, primary = null, best = Infinity;
+    for (i = 0; i < ents.length; i++) {
+      e = ents[i];
+      if (!isEnemy(e) || !inArc(p, a, e, ZEAL_R, ZEAL_HALF)) continue;
+      hits.push(e);
+      var d = rayDist(p.x, p.y, a, e.x, e.y);
+      if (d < best) { best = d; primary = e; }
+    }
+    var curse = st.conviction || 0;
+    if (b.oathset) curse = Math.max(curse, 4);
+    var hit = false;
+    for (var s = 0; s < strikes; s++) {
+      var mul = (s === 0 ? sac : 0.62);
+      var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [(14 + bonus) * mul, (22 + bonus) * mul], critChance: 0.08, auraDmgInc: p.auraDmgInc || 0 };
+      for (i = 0; i < hits.length; i++) {
+        e = hits[i];
+        if (e.dead) continue;
+        if (curse) e.amplify = Math.max(e.amplify || 0, curse);
+        if (e === primary || b.fanaticism) e.marked = Math.max(e.marked || 0, 2 + (st.markDur || 0));
+        if (e === primary) e.lashed = 2;
+        PB.World.damage(world, att, e);
+        PB.World.knock(e, p.x, p.y, 36);
+        hit = true;
+      }
+    }
+    if (hit) {
+      var back = (st.zealLeech || 0) + (b.zealheart ? 4 : 0);
+      if (back) p.hp = Math.min(p.maxHp, p.hp + back);
+      var mend = b.redoubt ? Math.max(4, back) : (b.sanctified ? 6 : 0);
+      for (i = 0; i < ents.length; i++) {
+        e = ents[i];
+        if (e.kind !== 'summon' || e.dead) continue;
+        if (b.fanaticism || e.role === 'wolf' || e.role === 'bear') e.cd = 0;
+        if (mend) {
+          var dx = e.x - p.x, dy = e.y - p.y;
+          if (dx * dx + dy * dy <= 160 * 160) e.hp = Math.min(e.maxHp, e.hp + mend);
+        }
+      }
+    }
+    PB.Events.emit(world.events, 'zeal', { x: p.x, y: p.y, angle: a, hit: hit, strikes: strikes, primary: primary ? primary.id : 0 });
+    if (hit) PB.World.hitStop(world, 42);
+  }
+
   function basicAttack(world, p, input) {
     var kind = PB.Classes.of(world.save).attack;
     if (kind === 'bonespear') boneSpear(world, p, input);
     else if (kind === 'fireball') fireball(world, p, input);
+    else if (kind === 'zeal') zeal(world, p, input);
     else thornlash(world, p, input);
   }
 

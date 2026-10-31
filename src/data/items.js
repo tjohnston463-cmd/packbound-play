@@ -28,7 +28,9 @@
     { id: 'heartwood',  base: 'antlerstaff', name: 'Heartwood Staff',          ilvl: 8,  behaviors: { walkingvines: 1 }, text: 'Vines uproot and walk at 60% wolf speed, following the pack.' },
     { id: 'lullaby',    base: 'bearpelt',    name: "Ursa's Lullaby",           ilvl: 9,  behaviors: { lullaby: 1 },  text: 'Below 30% life your bear sleeps 3s (invulnerable, regenerating), then wakes enraged (+50% damage, 8s).' },
     { id: 'wildheart',  base: 'hidepelt',    name: 'Wildheart Pelt',           ilvl: 5,  behaviors: { wildheart: 1 }, text: 'Skinwalk has no time limit; your empty body becomes a stag that flees danger.' },
-    { id: 'huntcrown',  base: 'moontotem',   name: 'Crown of the Wild Hunt',   ilvl: 12, behaviors: { huntcrown: 1 }, text: 'Chorus fills twice as fast; Echoes from the Wild Hunt linger 10s after it ends.' }
+    { id: 'huntcrown',  base: 'moontotem',   name: 'Crown of the Wild Hunt',   ilvl: 12, behaviors: { huntcrown: 1 }, text: 'Chorus fills twice as fast; Echoes from the Wild Hunt linger 10s after it ends.' },
+    { id: 'moonclaw',   base: 'hidepelt',    name: 'Moonclaw Pelt',            ilvl: 7,  cls: 'druid', behaviors: { wereheart: 1 }, text: 'Wereclaw returns 6 more life on the marked body, and the claw hits as if it were one rank deeper. Only a Wildcaller can find this.' },
+    { id: 'handoath',   base: 'ashstaff',    name: 'Hand of the Oath',         ilvl: 6,  cls: 'pala', behaviors: { zealheart: 1 }, text: 'Zeal strikes once more, and a landed swing returns 4 life. Only an Oathbound can find this.' }
   ];
   PB.BASE_BY_ID = {};
   PB.ITEM_BASES.forEach(function (b) { PB.BASE_BY_ID[b.id] = b; });
