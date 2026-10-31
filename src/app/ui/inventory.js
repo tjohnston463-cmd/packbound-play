@@ -11,7 +11,10 @@
   var SLOT_NAME = { staff: 'Staff', mask: 'Mask', pelt: 'Pelt', talisman: 'Talisman', charm1: 'Charm', charm2: 'Charm' };
   var STAT_TEXT = { thornDmg: 'Attack +{v} damage', spiritMax: '+{v} max Spirit', armor: '+{v} armor', packHp: '+{v}% summon life',
                     wolfDmg: '+{v}% wolf damage', ravenDmg: '+{v}% raven damage', vineDmg: '+{v}% vine damage',
-                    zealDmg: 'Zeal +{v} damage', zealLeech: 'Zeal returns {v} life' };
+                    zealDmg: 'Zeal +{v} damage', zealLeech: 'Zeal returns {v} life',
+                    furyDmg: 'Lightning Fury +{v} damage', furyLeech: 'Lightning Fury returns {v} life',
+                    whirlDmg: 'Whirlwind +{v} damage', whirlLeech: 'Whirlwind returns {v} life',
+                    spearDmg: 'Bone Spear +{v} damage' };
 
   function rarityColor(r) { for (var i = 0; i < PB.RARITIES.length; i++) if (PB.RARITIES[i].id === r) return PB.RARITIES[i].color; return '#d8d8d8'; }
   function baseOf(item) { for (var i = 0; i < PB.ITEM_BASES.length; i++) if (PB.ITEM_BASES[i].id === item.base) return PB.ITEM_BASES[i]; return null; }

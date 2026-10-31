@@ -1,5 +1,6 @@
-// Four callings. The Wildcaller (druid) is the original hunt. The Gravecaller, the Stormbinder and the
-// Oathbound share the wood, the loot, the Moon and the altar, and they do not share a pack or a basic attack.
+// Six callings. The Wildcaller (druid) is the original hunt: the whip, and a pack that feeds it.
+// The Gravecaller, the Stormbinder, the Oathbound, the Skymark and the Warbound share the wood, the loot,
+// the Moon and the altar, and they do not share a pack or a basic attack.
 // A calling's hunters carry a role (wolf, raven, bear, vine, spirit) so grove sets, rune words and
 // the synergy rules follow the job, not only the druid's animals. Old saves have no classId and load as druid.
 (function (PB) {
@@ -18,6 +19,8 @@
   var ASH = ['#c45a28', '#5a240e', '#ffd090'];
   var ICE = ['#b9d4ea', '#5a7e98', '#f4fbff'];
   var OATH = ['#e6d7a8', '#6a5a32', '#fff6d4'];
+  var SKY = ['#6a8ab0', '#2a3a52', '#e6c56a'];
+  var WAR = ['#a85038', '#4a2018', '#ffd0a0'];
 
   function summon(def) {
     PB.SUMMONS[def.id] = def;
@@ -79,6 +82,42 @@
     note: 'aura: the oath hits harder and mends a little.',
     paint: ['spirit', OATH, '#fff6c0', 'halo'] });
 
+  // --- Skymark: you throw. The javelin forks. A short war party holds the line. The valkyrie is the wall. ---
+  summon({ id: 'sister', name: 'Spear Sister', key: '1', cost: 22, cap: 2, hp: 90, dmg: [10, 15], atk: 0.8, range: 30, speed: 220, r: 12, mass: 1.2, tags: ['sister'], ai: 'flank', role: 'wolf',
+    note: 'a pair, not a horde. Crits Marked prey. The javelin calls them in.',
+    paint: ['wolf', ['#c8a878', '#5a4030', '#f4e6c0'], '#9fd8ff', null] });
+  summon({ id: 'hawk', name: 'Hawk', key: '2', cost: 12, cap: 3, hp: 22, dmg: [6, 10], atk: 0.7, range: 170, speed: 280, r: 8, mass: 0.35, tags: ['hawk'], ai: 'dart', flying: true, role: 'raven',
+    note: 'a hawk that marks from above.',
+    paint: ['raven', SKY, '#e8f4ff', null] });
+  summon({ id: 'valk', name: 'Valkyrie', key: '3', cost: 46, cap: 1, hp: 360, dmg: [14, 22], atk: 1.4, range: 34, speed: 145, r: 18, mass: 3.6, tags: ['valk'], ai: 'guard', role: 'bear',
+    note: 'one spear-maiden. Taunts. Mauls knock back. You throw from behind her.',
+    paint: ['bear', ['#d8d4c8', '#6a6458', '#fff6d4'], '#9fd8ff', 'halo'] });
+  summon({ id: 'stake', name: 'Decoy Stake', key: '4', cost: 16, cap: 2, hp: 70, dmg: [3, 6], atk: 2.6, range: 130, speed: 0, r: 12, mass: 99, tags: ['stake'], ai: 'rooted', rooted: true, role: 'vine',
+    note: 'planted at the cursor. The wood holds what you threw past.',
+    paint: ['vine', ['#7a6848', '#3a2e1c', '#e6c56a'], '#9fd8ff', 'flower'] });
+  summon({ id: 'gale', name: 'Gale', key: '5', cost: 26, cap: 1, hp: 40, dmg: [0, 0], atk: 0, range: 190, speed: 220, r: 10, mass: 0.4, tags: ['gale'], ai: 'aura', flying: true, role: 'spirit',
+    aura: { radius: 190, regen: 1.4, dmgInc: 0.12 },
+    note: 'aura: the war party hits harder. A little mending. You are the throw.',
+    paint: ['spirit', SKY, '#e8f4ff', null] });
+
+  // --- Warbound: you are the whirlwind. A short warband shouts with you. ---
+  summon({ id: 'berzerk', name: 'Berserker', key: '1', cost: 24, cap: 2, hp: 110, dmg: [12, 18], atk: 0.75, range: 28, speed: 200, r: 13, mass: 1.5, tags: ['berzerk'], ai: 'flank', role: 'wolf',
+    note: 'two axes, not a horde. Crits Marked prey. The spin calls them in.',
+    paint: ['wolf', WAR, '#ffd0a0', null] });
+  summon({ id: 'axe', name: 'Axe Thrower', key: '2', cost: 14, cap: 2, hp: 40, dmg: [8, 13], atk: 0.95, range: 160, speed: 210, r: 10, mass: 0.7, tags: ['axe'], ai: 'dart', flying: true, role: 'raven',
+    note: 'a thrown axe that marks.',
+    paint: ['raven', ['#8a9098', '#3a3e44', '#e8eef4'], '#ffd0a0', null] });
+  summon({ id: 'warlord', name: 'Warlord', key: '3', cost: 50, cap: 1, hp: 460, dmg: [18, 26], atk: 1.45, range: 36, speed: 120, r: 22, mass: 5, tags: ['warlord'], ai: 'guard', role: 'bear',
+    note: 'the champion. Taunts. Mauls knock back. You spin beside him.',
+    paint: ['bear', ['#c06048', '#4a2018', '#ffd0a0'], '#ffb060', null] });
+  summon({ id: 'wartotem', name: 'War Totem', key: '4', cost: 18, cap: 2, hp: 90, dmg: [4, 7], atk: 2.8, range: 130, speed: 0, r: 14, mass: 99, tags: ['wartotem'], ai: 'rooted', rooted: true, role: 'vine',
+    note: 'planted at the cursor. The shout stays in the ground.',
+    paint: ['vine', ['#6a5030', '#2e2418', '#e6c56a'], '#ffb060', null] });
+  summon({ id: 'shout', name: 'Warcry', key: '5', cost: 28, cap: 1, hp: 60, dmg: [0, 0], atk: 0, range: 200, speed: 170, r: 11, mass: 0.6, tags: ['shout'], ai: 'aura', flying: true, role: 'spirit',
+    aura: { radius: 200, regen: 1.6, dmgInc: 0.16 },
+    note: 'aura: the warband hits harder. The shout is the heal.',
+    paint: ['spirit', WAR, '#ffd090', null] });
+
   // Evolutions keep the druid branch mods (lunge, leap, mark, quake) under new names, so the same AI hooks fire.
   var EVO_NAME = {
     skeleton: { A: ['Reaver', 'Grave Reaver'], B: ['Shield Bone', 'Crypt Guard'] },
@@ -95,9 +134,19 @@
     judicar: { A: ['Cantor', 'Omen Hammer'], B: ['Razor', 'Storm Hammer'] },
     bulwark: { A: ['Bulwark', 'Citadel'], B: ['Ravager', 'Berserk Mail'] },
     sanctum: { A: ['Strangler', 'Devourer'], B: ['Bloom', 'Mother Chapel'] },
-    banner: { A: ['Chaplain', 'Elder Banner'], B: ['War Hymn', 'Blood Banner'] }
+    banner: { A: ['Chaplain', 'Elder Banner'], B: ['War Hymn', 'Blood Banner'] },
+    sister: { A: ['Huntress', 'Sky Huntress'], B: ['Warder', 'Hearth Sister'] },
+    hawk: { A: ['Seer', 'Omen Hawk'], B: ['Razor', 'Storm Hawk'] },
+    valk: { A: ['Bulwark', 'Citadel'], B: ['Ravager', 'Berserk Spear'] },
+    stake: { A: ['Strangler', 'Devourer'], B: ['Bloom', 'Mother Stake'] },
+    gale: { A: ['Wind Sage', 'Elder Gale'], B: ['Skysong', 'Blood Wind'] },
+    berzerk: { A: ['Reaver', 'War Reaver'], B: ['Warder', 'Hearth Axe'] },
+    axe: { A: ['Cantor', 'Omen Axe'], B: ['Razor', 'Storm Axe'] },
+    warlord: { A: ['Bulwark', 'Citadel'], B: ['Ravager', 'Berserk Lord'] },
+    wartotem: { A: ['Strangler', 'Devourer'], B: ['Bloom', 'Mother Totem'] },
+    shout: { A: ['Chanter', 'Elder Cry'], B: ['War Hymn', 'Blood Cry'] }
   };
-  var KIN_OF = { skeleton: 'wolf', mage: 'raven', golem: 'bear', spike: 'vine', priest: 'spirit', ember: 'wolf', wisp: 'raven', monolith: 'bear', hydra: 'vine', nimbus: 'spirit', squire: 'wolf', judicar: 'raven', bulwark: 'bear', sanctum: 'vine', banner: 'spirit' };
+  var KIN_OF = { skeleton: 'wolf', mage: 'raven', golem: 'bear', spike: 'vine', priest: 'spirit', ember: 'wolf', wisp: 'raven', monolith: 'bear', hydra: 'vine', nimbus: 'spirit', squire: 'wolf', judicar: 'raven', bulwark: 'bear', sanctum: 'vine', banner: 'spirit', sister: 'wolf', hawk: 'raven', valk: 'bear', stake: 'vine', gale: 'spirit', berzerk: 'wolf', axe: 'raven', warlord: 'bear', wartotem: 'vine', shout: 'spirit' };
   Object.keys(EVO_NAME).forEach(function (type) {
     var src = PB.EVOLUTIONS[KIN_OF[type]], names = EVO_NAME[type], out = {};
     ['A', 'B'].forEach(function (br) {
@@ -124,6 +173,16 @@
   PB.NAME_PARTS.bulwark = [['Bast', 'Ward', 'Helm', 'Dun'], ['ion', 'wall', 'mail', 'keep']];
   PB.NAME_PARTS.sanctum = [['Chapel', 'Nave', 'Relic', 'Pyx'], ['ground', 'well', 'stone', 'light']];
   PB.NAME_PARTS.banner = [['Gold', 'Hymn', 'Pale', 'Oath'], ['banner', 'light', 'standard', 'a']];
+  PB.NAME_PARTS.sister = [['Ska', 'Bry', 'Vel', 'Ash'], ['di', 'nhild', 'spear', 'a']];
+  PB.NAME_PARTS.hawk = [['Kyr', 'Syl', 'Aer', 'Ves'], ['hawk', 'wing', 'a', 'is']];
+  PB.NAME_PARTS.valk = [['Sig', 'Bry', 'Hild', 'Gunn'], ['run', 'a', 'spear', 'dis']];
+  PB.NAME_PARTS.stake = [['Stake', 'Pale', 'Decoy', 'Ash'], ['post', 'mark', 'wood', 'a']];
+  PB.NAME_PARTS.gale = [['Gale', 'Nor', 'Zeph', 'Sky'], ['wind', 'a', 'breath', 'is']];
+  PB.NAME_PARTS.berzerk = [['Gor', 'Ul', 'Rag', 'Bren'], ['nak', 'f', 'axe', 'ar']];
+  PB.NAME_PARTS.axe = [['Tor', 'Hal', 'Skar', 'Vig'], ['grim', 'd', 'axe', 'i']];
+  PB.NAME_PARTS.warlord = [['War', 'Khan', 'Bran', 'Ul'], ['lord', 'd', 'fist', 'ric']];
+  PB.NAME_PARTS.wartotem = [['Totem', 'Drum', 'Ash', 'Horn'], ['post', 'cry', 'wood', 'a']];
+  PB.NAME_PARTS.shout = [['Cry', 'Howl', 'Horn', 'War'], ['song', 'a', 'shout', 'ic']];
 
   // Each other calling gets the druid's ten crosses and five alphas, under new names.
   // mirror points at the druid fusion so the existing ability hooks run. The druid rows stay as they are.
@@ -148,19 +207,33 @@
       stormhound: ['Oath Hound', 'oathhound'], direwarg: ['War Brute', 'warbrute'], thornpelt: ['Thorn Oath', 'thornoath'],
       wraithwolf: ['Pale Squire', 'palesquire'], owlbear: ['Judgment', 'judgment'], carrionbloom: ['Reliquary', 'reliquary'],
       omen: ['Canticle', 'canticle'], rootwarden: ['Chapel Warden', 'chapelwarden'], eldersbear: ['Elder Aegis', 'elderaegis'], lifebloom: ['Mercy Well', 'mercywell']
+    },
+    amaz: {
+      stormhound: ['Sky Hound', 'skyhound'], direwarg: ['Storm Sister', 'stormsister'], thornpelt: ['Thorn Sky', 'thornsky'],
+      wraithwolf: ['Pale Sister', 'palesister'], owlbear: ['Sky Brute', 'skybrute'], carrionbloom: ['Skybloom', 'skybloom'],
+      omen: ['Sky Sign', 'skysign'], rootwarden: ['Sky Warden', 'skywarden'], eldersbear: ['Elder Hawk', 'elderhawk'], lifebloom: ['Wind Well', 'windwell']
+    },
+    barb: {
+      stormhound: ['War Hound', 'warhound'], direwarg: ['War Brute', 'warbrutes'], thornpelt: ['Thorn War', 'thornwar'],
+      wraithwolf: ['Pale Berserk', 'paleberserk'], owlbear: ['War Beast', 'warbeast'], carrionbloom: ['Warbloom', 'warbloom'],
+      omen: ['War Sign', 'warsign'], rootwarden: ['War Warden', 'warwarden'], eldersbear: ['Elder Axe', 'elderaxe'], lifebloom: ['War Well', 'warwell']
     }
   };
   var ALPHA_NAMES = {
     necro: { wolf: ['Shambler', 'shambler'], raven: ['College', 'bonecollege'], bear: ['Colossus', 'colossus'], vine: ['Spike Grove', 'spikegrove'], spirit: ['Twin Priest', 'twinpriest'] },
     sorc: { wolf: ['Alpha Cinder', 'alphacinder'], raven: ['Tempest', 'tempest'], bear: ['Obelisk', 'obelisk'], vine: ['Hydra Brood', 'hydrabrood'], spirit: ['Twin Storm', 'twinstorm'] },
-    pala: { wolf: ['Captain', 'captain'], raven: ['Choir', 'choir'], bear: ['Bastion', 'bastion'], vine: ['Sanctum Grove', 'sanctumgrove'], spirit: ['Twin Banner', 'twinbanner'] }
+    pala: { wolf: ['Captain', 'captain'], raven: ['Choir', 'choir'], bear: ['Bastion', 'bastion'], vine: ['Sanctum Grove', 'sanctumgrove'], spirit: ['Twin Banner', 'twinbanner'] },
+    amaz: { wolf: ['Sky Captain', 'skycaptain'], raven: ['Cast', 'hawkcast'], bear: ['Prime', 'valkprime'], vine: ['Stake Grove', 'stakegrove'], spirit: ['Twin Gale', 'twingale'] },
+    barb: { wolf: ['War Captain', 'warcaptain'], raven: ['Axe Choir', 'axechoir'], bear: ['Colossus', 'warcolossus'], vine: ['Totem Grove', 'totemgrove'], spirit: ['Twin Shout', 'twinshout'] }
   };
   var CLASS_KIN = {
     necro: { wolf: 'skeleton', raven: 'mage', bear: 'golem', vine: 'spike', spirit: 'priest' },
     sorc: { wolf: 'ember', raven: 'wisp', bear: 'monolith', vine: 'hydra', spirit: 'nimbus' },
-    pala: { wolf: 'squire', raven: 'judicar', bear: 'bulwark', vine: 'sanctum', spirit: 'banner' }
+    pala: { wolf: 'squire', raven: 'judicar', bear: 'bulwark', vine: 'sanctum', spirit: 'banner' },
+    amaz: { wolf: 'sister', raven: 'hawk', bear: 'valk', vine: 'stake', spirit: 'gale' },
+    barb: { wolf: 'berzerk', raven: 'axe', bear: 'warlord', vine: 'wartotem', spirit: 'shout' }
   };
-  var CLASS_PAL = { necro: BONE, sorc: STORM, pala: OATH };
+  var CLASS_PAL = { necro: BONE, sorc: STORM, pala: OATH, amaz: SKY, barb: WAR };
 
   function addMirrorFusions(classId) {
     var kin = CLASS_KIN[classId], keys = Object.keys(PB.FUSIONS), i;
@@ -186,10 +259,14 @@
   addMirrorFusions('necro');
   addMirrorFusions('sorc');
   addMirrorFusions('pala');
+  addMirrorFusions('amaz');
+  addMirrorFusions('barb');
 
   paint('necro', 'robed', ['#2a2438', '#120e18', '#e4d4ff'], '#d0b0ff', null);
   paint('sorc', 'robed', ['#1c2448', '#0c1024', '#f5e46a'], '#fff6c0', null);
   paint('pala', 'robed', ['#3a3424', '#1a160e', '#ffe9a0'], '#fff6c0', 'halo');
+  paint('amaz', 'archer', ['#8a6844', '#3a2a18', '#e6c56a'], '#9fd8ff', null);
+  paint('barb', 'slab', ['#a85038', '#4a2018', '#ffd0a0'], '#ffb060', null);
 
   PB.FUSION_BY_ID = {};
   Object.keys(PB.FUSIONS).forEach(function (k) { PB.FUSION_BY_ID[PB.FUSIONS[k].id] = PB.FUSIONS[k]; });
@@ -283,6 +360,55 @@
   node('pala', 'cantor', 'oath', 3, 3, 'Cantor', '+20% Chorus burst damage per rank', function (r) { return { chorusDmg: 20 * r }; }, ['oathrally']);
   node('pala', 'fanaticism', 'oath', 4, 1, 'Fanaticism', 'KEYSTONE: Zeal marks the whole arc, the whole pack swings with you, and they swing faster.', function () { return { behaviors: { fanaticism: 1 }, packAtkSpd: 12 }; }, ['oathlore']);
 
+  // Skymark. The javelin is the weapon. The valkyrie is the wall. Sky is the mark, the form and the Chorus.
+  node('amaz', 'skymuster', 'javelin', 1, 2, 'Call the Sisters', '+1 spear sister cap per rank, and +6% sister damage. A pair, not a horde.', function (r) { return { sisterCap: r, sisterDmg: 6 * r }; });
+  node('amaz', 'fury', 'javelin', 1, 5, 'Lightning Fury', '+4 javelin damage per rank. Rank 2, 3 and 4 each add a lightning fork. The throw is the weapon.', function (r) { return { furyDmg: 4 * r, furyForks: Math.min(3, Math.max(0, r - 1)) }; });
+  node('amaz', 'skywing', 'javelin', 2, 3, 'Paired Spears', 'Sisters deal more for each other sister alive, and each rank feeds Howl.', function (r) { return { packTactics: 3 * r }; }, ['skymuster']);
+  node('amaz', 'charged', 'javelin', 3, 3, 'Charged Strike', 'A landed javelin returns 2 life per rank.', function (r) { return { furyLeech: 2 * r }; });
+  node('amaz', 'stormstrike', 'javelin', 4, 1, 'Storm Strike', 'KEYSTONE: the lightning hops a second time, and a forked body is Marked.', function () { return { behaviors: { stormstrike: 1 } }; }, ['fury']);
+
+  node('amaz', 'skyhide', 'valkyrie', 1, 5, 'Leather', '+4 armor per rank. You are harder to pin.', function (r) { return { armor: 4 * r }; });
+  node('amaz', 'decoy', 'valkyrie', 1, 2, 'Decoy', '+1 stake cap per rank. The hold lasts a little longer.', function (r) { return { stakeCap: r, rootDur: 0.25 * r }; });
+  node('amaz', 'valormight', 'valkyrie', 2, 3, 'Valkyrie', '+15% valkyrie life and damage per rank. Rank 3 calls a second valkyrie. Each rank hardens the guard.', function (r) { return { valkHp: 15 * r, valkDmg: 15 * r, valkCap: r >= 3 ? 1 : 0 }; }, ['skyhide']);
+  node('amaz', 'skycrit', 'valkyrie', 2, 3, 'Critical Strike', '+4% javelin crit chance per rank. Ranks also feed the throw.', function (r) { return { furyCrit: 4 * r }; }, ['decoy']);
+  node('amaz', 'skybulk', 'valkyrie', 3, 3, 'War Party', '+6% summon life per rank. The party shares its hide.', function (r) { return { packHp: 6 * r }; });
+  node('amaz', 'evadebolt', 'valkyrie', 3, 1, 'Evade', 'Space leaves lightning on the line. What you pass is slowed.', function () { return { behaviors: { evadebolt: 1 } }; }, ['decoy']);
+  node('amaz', 'valkstand', 'valkyrie', 4, 1, 'Stand', 'KEYSTONE: the valkyrie stuns on the maul, and the javelin calls her in with the sisters.', function () { return { behaviors: { valkstand: 1, maulstun: 1 } }; }, ['valormight']);
+
+  node('amaz', 'skywell', 'sky', 1, 5, 'Second Wind', '+10% Focus regen per rank. Each rank also feeds the Chorus.', function (r) { return { spiritRegen: 10 * r }; });
+  node('amaz', 'skyclear', 'sky', 1, 3, 'Clear Shot', '8% faster command cooldowns per rank', function (r) { return { cmdCdr: 8 * r }; });
+  node('amaz', 'skywide', 'sky', 2, 3, 'Wider Gale', '+15% aura radius per rank', function (r) { return { auraRadius: 15 * r }; }, ['skywell']);
+  node('amaz', 'skyrally', 'sky', 2, 3, 'Rally of the Sky', 'Rally shield +10% of max life per rank', function (r) { return { rallyShield: 10 * r }; }, ['skyclear']);
+  node('amaz', 'innersight', 'sky', 3, 3, 'Inner Sight', 'The javelin marks longer. +1.2s per rank. Marked prey takes more.', function (r) { return { markDur: 1.2 * r, markDmg: 4 * r }; });
+  node('amaz', 'skyform', 'sky', 3, 3, 'Skyform', '+4s inside a summon and +10% possessed damage per rank. Tab is the same key.', function (r) { return { skinDur: 4 * r, skinDmg: 10 * r }; });
+  node('amaz', 'skylore', 'sky', 3, 3, 'Sky Lore', '+10% fused summon stats per rank. Rank 3: +1 fusion slot', function (r) { return { fusedStats: 10 * r, fusionSlots: r >= 3 ? 1 : 0 }; }, ['skywide']);
+  node('amaz', 'skyvoice', 'sky', 3, 3, 'Gale Voice', '+20% Chorus burst damage per rank', function (r) { return { chorusDmg: 20 * r }; }, ['skyrally']);
+  node('amaz', 'skymark', 'sky', 4, 1, 'Skymark', 'KEYSTONE: the javelin marks the whole line, and every hawk looses when it lands.', function () { return { behaviors: { skymark: 1 } }; }, ['skylore']);
+
+  // Warbound. Whirlwind is the weapon. The shout is the pack. Iron is the form and the Chorus.
+  node('barb', 'warband', 'frenzy', 1, 2, 'Warband', '+1 berserker cap per rank, and +6% berserker damage. Two axes, not a horde.', function (r) { return { berzerkCap: r, berzerkDmg: 6 * r }; });
+  node('barb', 'whirl', 'frenzy', 1, 5, 'Whirlwind', '+4 spin damage per rank. A second spin inside the window hits harder. Rank 2, 3 and 4 each allow one more frenzy stack.', function (r) { return { whirlDmg: 4 * r, frenzyMax: Math.min(3, Math.max(0, r - 1)) }; });
+  node('barb', 'warline', 'frenzy', 2, 3, 'Paired Axes', 'Berserkers deal more for each other berserker alive, and each rank feeds Howl.', function (r) { return { packTactics: 3 * r }; }, ['warband']);
+  node('barb', 'bloodwhirl', 'frenzy', 3, 3, 'Blood Whirl', 'A landed spin returns 2 life per rank.', function (r) { return { whirlLeech: 2 * r }; });
+  node('barb', 'berserk', 'frenzy', 4, 1, 'Berserk', 'KEYSTONE: at three frenzy stacks the spin hits twice.', function () { return { behaviors: { berserk: 1 } }; }, ['whirl']);
+
+  node('barb', 'battleorders', 'shout', 1, 5, 'Battle Orders', '+6% summon life per rank. The shout is the hide.', function (r) { return { packHp: 6 * r }; });
+  node('barb', 'wartotem', 'shout', 1, 2, 'Plant the Totem', '+1 war totem cap per rank. The ground holds a little longer.', function (r) { return { wartotemCap: r, rootDur: 0.25 * r }; });
+  node('barb', 'warlordmight', 'shout', 2, 3, 'Warlord', '+15% warlord life and damage per rank. Rank 3 calls a second warlord. Each rank hardens the guard.', function (r) { return { warlordHp: 15 * r, warlordDmg: 15 * r, warlordCap: r >= 3 ? 1 : 0 }; }, ['battleorders']);
+  node('barb', 'warsmite', 'shout', 2, 1, 'Stun', 'Warlord hits stun for 0.5s', function () { return { behaviors: { maulstun: 1 } }; }, ['wartotem']);
+  node('barb', 'warhide', 'shout', 3, 3, 'Iron Skin', '+4 armor per rank. You are the one who stays.', function (r) { return { armor: 4 * r }; });
+  node('barb', 'orders', 'shout', 4, 1, 'Find the Line', 'KEYSTONE: a landed spin mends the warband beside you for 4 life.', function () { return { behaviors: { orders: 1 } }; }, ['warlordmight']);
+
+  node('barb', 'warwell', 'iron', 1, 5, 'Deep Breath', '+10% Rage regen per rank. Each rank also feeds the Chorus.', function (r) { return { spiritRegen: 10 * r }; });
+  node('barb', 'warclear', 'iron', 1, 3, 'Clear Cry', '8% faster command cooldowns per rank', function (r) { return { cmdCdr: 8 * r }; });
+  node('barb', 'warwide', 'iron', 2, 3, 'Wider Cry', '+15% aura radius per rank', function (r) { return { auraRadius: 15 * r }; }, ['warwell']);
+  node('barb', 'warrally', 'iron', 2, 3, 'Rally of the Band', 'Rally shield +10% of max life per rank', function (r) { return { rallyShield: 10 * r }; }, ['warclear']);
+  node('barb', 'battlecry', 'iron', 3, 3, 'Battle Cry', '+3 armor per rank. The shout hardens you before the keystone.', function (r) { return { armor: 3 * r }; });
+  node('barb', 'warform', 'iron', 3, 3, 'Warcry Form', '+4s inside a summon and +10% possessed damage per rank. Tab is the same key.', function (r) { return { skinDur: 4 * r, skinDmg: 10 * r }; });
+  node('barb', 'warlore', 'iron', 3, 3, 'War Lore', '+10% fused summon stats per rank. Rank 3: +1 fusion slot', function (r) { return { fusedStats: 10 * r, fusionSlots: r >= 3 ? 1 : 0 }; }, ['warwide']);
+  node('barb', 'warvoice', 'iron', 3, 3, 'Voice', '+20% Chorus burst damage per rank', function (r) { return { chorusDmg: 20 * r }; }, ['warrally']);
+  node('barb', 'grandcry', 'iron', 4, 1, 'War Cry', 'KEYSTONE: the spin marks the whole ring, and anything that is not elite runs.', function () { return { behaviors: { warcry: 1 } }; }, ['warlore']);
+
   PB.SKILL_BY_ID = {};
   PB.SKILLS.forEach(function (s) { PB.SKILL_BY_ID[s.id] = s; });
 
@@ -302,20 +428,37 @@
     { from: 'aegis', stat: 'bearGuard', per: 5 },
     { from: 'plate', stat: 'bearHp', per: 4 },
     { from: 'prayer', stat: 'chorusDmg', per: 5 },
-    { from: 'conviction', stat: 'zealDmg', per: 3 }
+    { from: 'conviction', stat: 'zealDmg', per: 3 },
+    { from: 'skywing', stat: 'howlDmg', per: 8 },
+    { from: 'fury', stat: 'sisterDmg', per: 4 },
+    { from: 'decoy', stat: 'rootDmg', per: 8 },
+    { from: 'valormight', stat: 'bearGuard', per: 5 },
+    { from: 'skycrit', stat: 'furyDmg', per: 2 },
+    { from: 'skywell', stat: 'chorusDmg', per: 5 },
+    { from: 'innersight', stat: 'hawkDmg', per: 6 },
+    { from: 'warline', stat: 'howlDmg', per: 8 },
+    { from: 'whirl', stat: 'berzerkDmg', per: 4 },
+    { from: 'warlordmight', stat: 'bearGuard', per: 5 },
+    { from: 'wartotem', stat: 'rootDmg', per: 8 },
+    { from: 'battleorders', stat: 'chorusDmg', per: 4 },
+    { from: 'warwell', stat: 'chorusDmg', per: 5 }
   ];
 
   PB.TREE_NAME = {
     fang: 'Fang', wingroot: 'Wing & Root', command: 'Command',
     bone: 'Bone', grave: 'Grave', rite: 'Rite',
     flame: 'Flame', frost: 'Frost', arcane: 'Arcane',
-    zeal: 'Zeal', aegis: 'Aegis', oath: 'Oath'
+    zeal: 'Zeal', aegis: 'Aegis', oath: 'Oath',
+    javelin: 'Javelin', valkyrie: 'Valkyrie', sky: 'Sky',
+    frenzy: 'Frenzy', shout: 'Shout', iron: 'Iron'
   };
   PB.TREE_TEXT = {
     fang: 'wolves and the bear', wingroot: 'ravens and vines', command: 'spirits, orders, fusion',
     bone: 'skeletons, the golem, the spear', grave: 'mages and spikes', rite: 'the priest, orders, fusion',
     flame: 'the fireball and the hydra', frost: 'the monolith', arcane: 'mana, form, the Chorus',
-    zeal: 'the swing and the squires', aegis: 'the bulwark and the sanctum', oath: 'the banner, the curse, the Chorus'
+    zeal: 'the swing and the squires', aegis: 'the bulwark and the sanctum', oath: 'the banner, the curse, the Chorus',
+    javelin: 'the throw and the sisters', valkyrie: 'the valkyrie and the stake', sky: 'the mark, the form, the Chorus',
+    frenzy: 'the spin and the berserkers', shout: 'the warlord and the totem', iron: 'the cry, the form, the Chorus'
   };
 
   var CLASSES = [
@@ -324,7 +467,7 @@
       attack: 'thornlash', attackName: 'Thornlash', attackText: 'Thornlash: a short whip cone. In menus: select',
       resource: 'Spirit', body: 'druid', glow: 'green', orb: ['#0c2a6a', '#4f8de0'],
       plantNote: '(the vine roots at the cursor)', moveText: 'Move the druid (or the summon you Skinwalk)',
-      blurb: 'The whip marks. The pack kills.', pitch: 'You do not fight. You conduct.', fantasy: 'You conduct the living wood. The whip tells them where to bite.' },
+      blurb: 'The whip marks. The pack kills.', pitch: 'You do not fight. You conduct.', fantasy: 'The whip marks. A full pack feeds Spirit back into the swing. You conduct.' },
     { id: 'necro', name: 'Necromancer', title: 'Gravecaller', order: ['skeleton', 'mage', 'golem', 'spike', 'priest'], trees: ['bone', 'grave', 'rite'],
       kin: CLASS_KIN.necro,
       attack: 'bonespear', attackName: 'Bone Spear', attackText: 'Bone Spear: a piercing line. It curses. In menus: select',
@@ -342,7 +485,19 @@
       attack: 'zeal', attackName: 'Zeal', attackText: 'Zeal: a heavy close swing. Ranks add strikes. In menus: select',
       resource: 'Faith', body: 'pala', glow: 'gold', orb: ['#3a3018', '#e6c56a'],
       plantNote: '(the sanctum roots at the cursor)', moveText: 'Move the paladin (or the summon you inhabit)',
-      blurb: 'You stand in the fight.', pitch: 'You stand in the fight. The oath holds.', fantasy: 'Zeal is the weapon. The bulwark is the wall. A short oath, not a horde.' }
+      blurb: 'You stand in the fight.', pitch: 'You stand in the fight. The oath holds.', fantasy: 'Zeal is the weapon. The bulwark is the wall. A short oath, not a horde.' },
+    { id: 'amaz', name: 'Amazon', title: 'Skymark', order: ['sister', 'hawk', 'valk', 'stake', 'gale'], trees: ['javelin', 'valkyrie', 'sky'],
+      kin: CLASS_KIN.amaz,
+      attack: 'fury', attackName: 'Lightning Fury', attackText: 'Lightning Fury: a javelin that pierces, then forks lightning. In menus: select',
+      resource: 'Focus', body: 'amaz', glow: 'frost', orb: ['#1a2838', '#7eb0d8'],
+      plantNote: '(the stake roots at the cursor)', moveText: 'Move the amazon (or the summon you become)',
+      blurb: 'Throw. The lightning forks.', pitch: 'The javelin forks. She holds the line.', fantasy: 'Lightning Fury is the weapon. The valkyrie is the wall. A war party, not a horde.' },
+    { id: 'barb', name: 'Barbarian', title: 'Warbound', order: ['berzerk', 'axe', 'warlord', 'wartotem', 'shout'], trees: ['frenzy', 'shout', 'iron'],
+      kin: CLASS_KIN.barb,
+      attack: 'whirl', attackName: 'Whirlwind', attackText: 'Whirlwind: you spin. The whole ring is hit. Frenzy stacks. In menus: select',
+      resource: 'Rage', body: 'barb', glow: 'ember', orb: ['#3a1810', '#e07040'],
+      plantNote: '(the totem roots at the cursor)', moveText: 'Move the barbarian (or the summon you inhabit)',
+      blurb: 'Spin. The warband follows.', pitch: 'You are the whirlwind.', fantasy: 'Whirlwind is the weapon. Frenzy makes the next spin heavier. A short warband shouts with you.' }
   ];
   PB.CLASS_BY_ID = {};
   PB.CLASS_ORDER = CLASSES.map(function (c) { PB.CLASS_BY_ID[c.id] = c; return c.id; });

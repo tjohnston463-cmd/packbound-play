@@ -111,12 +111,14 @@
       drawScene(g, T.t);
       drawLogo(g, UI, T.t);
       var has = PB.Game.hasSave(), y = 368, bw = 260, bh = 44, gap = 54;
-      var ids = PB.Classes.ids(), cw = ids.length > 3 ? 188 : 236, cgap = ids.length > 3 ? 8 : 12;
-      var rowW = ids.length * cw + (ids.length - 1) * cgap, cx0 = cx - rowW / 2, ch = ids.length > 3 ? 56 : 52;
+      var ids = PB.Classes.ids(), cols = ids.length > 4 ? 3 : ids.length;
+      var cw = cols > 3 ? 188 : 220, cgap = 10, ch = 52, rgap = 8, top = 268;
+      var rowW = cols * cw + (cols - 1) * cgap, cx0 = cx - rowW / 2;
       ids.forEach(function (id, i) {
-        var c = PB.Classes.get(id), on = T.classId === id;
-        if (UI.button(g, 'class-' + id, { x: cx0 + i * (cw + cgap), y: 292, w: cw, h: ch }, c.title, { size: ids.length > 3 ? 14 : 16, active: on, tone: on ? 'moss' : 'ember', sub: c.blurb })) T.classId = id;
+        var c = PB.Classes.get(id), on = T.classId === id, col = i % cols, row = Math.floor(i / cols);
+        if (UI.button(g, 'class-' + id, { x: cx0 + col * (cw + cgap), y: top + row * (ch + rgap), w: cw, h: ch }, c.title, { size: 15, active: on, tone: on ? 'moss' : 'ember', sub: c.blurb })) T.classId = id;
       });
+      y = top + Math.ceil(ids.length / cols) * (ch + rgap) + 12;
       if (has && UI.button(g, 'continue', { x: cx - bw / 2, y: y, w: bw, h: bh }, 'Continue', { tone: 'moss', size: 18,
         sub: 'Level ' + G.save.player.level + ' · ' + G.save.roster.length + ' in the pack' })) PB.Game.continueGame();
       if (has) y += gap;

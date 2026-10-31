@@ -530,7 +530,7 @@
     var tex = grain(doc), bodies = {}, pack = [].concat(Object.keys(PB.SUMMONS), Object.keys(PB.FUSIONS).map(function (k) { return PB.FUSIONS[k].id; }),
       Object.keys(PB.ALPHA).map(function (k) { return PB.ALPHA[k].id; }));
     pack.forEach(function (t) { bodies[t] = sheetFor(doc, t, true, tex); });
-    Object.keys(PB.ENEMIES).concat(Object.keys(PB.BOSSES), ['druid', 'necro', 'sorc', 'pala']).forEach(function (t) { bodies[t] = sheetFor(doc, t, false, tex); });
+    Object.keys(PB.ENEMIES).concat(Object.keys(PB.BOSSES), ['druid', 'necro', 'sorc', 'pala', 'amaz', 'barb']).forEach(function (t) { bodies[t] = sheetFor(doc, t, false, tex); });
     var glows = {};
     [['gold', 'rgba(255,210,122,0.9)'], ['white', 'rgba(255,255,255,0.9)'], ['frost', 'rgba(160,220,255,0.9)'], ['ember', 'rgba(255,122,42,0.9)'],
      ['green', 'rgba(140,220,110,0.9)'], ['purple', 'rgba(190,140,255,0.9)'], ['red', 'rgba(255,80,60,0.9)']].forEach(function (p) { glows[p[0]] = glow(doc, p[1]); });
@@ -547,7 +547,7 @@
       out = out.concat(Object.keys(z.enemies), [z.boss]);
       if (i === 0) out = out.concat(Object.keys(PB.FUSIONS).map(function (k) { return PB.FUSIONS[k].id; }), Object.keys(PB.ALPHA).map(function (k) { return PB.ALPHA[k].id; }));
     });
-    out.push('necro', 'sorc', 'pala');
+    out.push('necro', 'sorc', 'pala', 'amaz', 'barb');
     return out;
   }
 

@@ -268,6 +268,16 @@
         ring(j, ev.x, ev.y, 10, ev.radius || 74, 0.32, 0xff7a2a, 4);
         emit(j, ev.x, ev.y, 16, 0xff7a2a, { speed: 160, life: 0.4 });
         return;
+      case 'fury':
+        j.swings.push({ x: ev.x, y: ev.y, x2: ev.x2, y2: ev.y2, bolt: false, color: '#e6c56a', t: 0, life: 0.16, hit: ev.hit });
+        (ev.bolts || []).forEach(function (b) {
+          j.swings.push({ x: b.x, y: b.y, x2: b.x2, y2: b.y2, bolt: true, t: 0, life: 0.2, hit: true });
+        });
+        return;
+      case 'whirl':
+        j.swings.push({ x: ev.x, y: ev.y, t: 0, life: 0.24, hit: ev.hit, whirl: true, radius: ev.radius || 72, stacks: ev.stacks || 1 });
+        if (ev.hit) ring(j, ev.x, ev.y, 16, ev.radius || 72, 0.3, 0xffb060, 4);
+        return;
       case 'zone-wake':
         ring(j, ev.x, ev.y, 10, 110, 0.45, ev.zone === 1 ? 0xe07030 : ev.zone === 2 ? 0x9fc6de : ev.zone === 3 ? 0xe3d36b : ev.zone === 4 ? 0x9b5ac2 : 0x6a8f4a, 3);
         return;

@@ -30,7 +30,11 @@
     { id: 'wildheart',  base: 'hidepelt',    name: 'Wildheart Pelt',           ilvl: 5,  behaviors: { wildheart: 1 }, text: 'Skinwalk has no time limit; your empty body becomes a stag that flees danger.' },
     { id: 'huntcrown',  base: 'moontotem',   name: 'Crown of the Wild Hunt',   ilvl: 12, behaviors: { huntcrown: 1 }, text: 'Chorus fills twice as fast; Echoes from the Wild Hunt linger 10s after it ends.' },
     { id: 'moonclaw',   base: 'hidepelt',    name: 'Moonclaw Pelt',            ilvl: 7,  cls: 'druid', behaviors: { wereheart: 1 }, text: 'Wereclaw returns 6 more life on the marked body, and the claw hits as if it were one rank deeper. Only a Wildcaller can find this.' },
-    { id: 'handoath',   base: 'ashstaff',    name: 'Hand of the Oath',         ilvl: 6,  cls: 'pala', behaviors: { zealheart: 1 }, text: 'Zeal strikes once more, and a landed swing returns 4 life. Only an Oathbound can find this.' }
+    { id: 'handoath',   base: 'ashstaff',    name: 'Hand of the Oath',         ilvl: 6,  cls: 'pala', behaviors: { zealheart: 1 }, text: 'Zeal strikes once more, and a landed swing returns 4 life. Only an Oathbound can find this.' },
+    { id: 'marrowwand', base: 'ashstaff',    name: 'Marrow Wand',              ilvl: 6,  cls: 'necro', behaviors: { marrowheart: 1 }, text: 'Bone Spear\'s curse lasts longer and leaps once to a body beside the line. It does not pierce that body. Only a Gravecaller can find this.' },
+    { id: 'galeeye',    base: 'stagmask',    name: 'Eye of the Gale',          ilvl: 8,  cls: 'sorc', behaviors: { galeheart: 1 }, text: 'Fireball bursts wider, and a landed blast returns 4 Mana. Only a Stormbinder can find this.' },
+    { id: 'thunderstroke', base: 'antlerstaff', name: 'Thunderstroke',         ilvl: 7,  cls: 'amaz', behaviors: { furyheart: 1 }, text: 'Lightning Fury forks once more. Only a Skymark can find this.' },
+    { id: 'grimspire',  base: 'ashstaff',    name: 'Grimspire',                ilvl: 7,  cls: 'barb', behaviors: { whirlheart: 1 }, text: 'Whirlwind reaches farther, and the frenzy holds a second longer. Only a Warbound can find this.' }
   ];
   PB.BASE_BY_ID = {};
   PB.ITEM_BASES.forEach(function (b) { PB.BASE_BY_ID[b.id] = b; });

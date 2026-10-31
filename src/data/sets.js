@@ -35,6 +35,22 @@
     ], partial: [
       { n: 2, stats: { zealLeech: 4 }, text: '(2) Zeal returns 4 life.' },
       { n: 3, behaviors: { oathset: 1 }, text: '(3) Zeal curses for 4s. The marked body takes more from you and the pack.' }
+    ] },
+    { id: 'sky', name: 'Skyfury', cls: 'amaz', pieces: [
+      { id: 'skystaff', base: 'ashstaff', name: 'Javelin of Skyfury', ilvl: 4, stats: { furyDmg: 6 }, text: '+6 Lightning Fury damage' },
+      { id: 'skypelt', base: 'hidepelt', name: 'Leathers of Skyfury', ilvl: 5, stats: { armor: 4 }, text: '+4 armor' },
+      { id: 'skycharm', base: 'fangcharm', name: 'Charm of Skyfury', ilvl: 6, stats: { bearDmg: 10 }, text: '+10% bear damage. The valkyrie is that job.' }
+    ], partial: [
+      { n: 2, stats: { furyLeech: 3 }, text: '(2) Lightning Fury returns 3 life.' },
+      { n: 3, behaviors: { skyset: 1 }, text: '(3) Lightning Fury forks at least three times.' }
+    ] },
+    { id: 'war', name: 'The War Cry', cls: 'barb', pieces: [
+      { id: 'warstaff', base: 'ashstaff', name: 'Cleaver of the Cry', ilvl: 4, stats: { whirlDmg: 8 }, text: '+8 Whirlwind damage' },
+      { id: 'warpelt', base: 'hidepelt', name: 'Hide of the Cry', ilvl: 5, stats: { armor: 8 }, text: '+8 armor' },
+      { id: 'warcharm', base: 'fangcharm', name: 'Tooth of the Cry', ilvl: 6, stats: { wolfDmg: 12 }, text: '+12% wolf damage. The berserker is that job.' }
+    ], partial: [
+      { n: 2, stats: { whirlLeech: 4 }, text: '(2) Whirlwind returns 4 life.' },
+      { n: 3, behaviors: { warcry: 1 }, text: '(3) Whirlwind marks the whole ring, and anything that is not elite runs.' }
     ] }
   ];
   PB.SET_BY_ID = {};

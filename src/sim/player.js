@@ -81,6 +81,8 @@
       var back = (stats.wereLeech || 0) + (beh.wereheart ? 6 : 0);
       if (back) p.hp = Math.min(p.maxHp, p.hp + back);
     }
+    // The conductor. Only the whip does this. Four or more of the pack on the field feed Spirit back when the swing lands.
+    if (hit && packN >= 4) p.spirit = Math.min(p.maxSpirit, p.spirit + Math.min(6, Math.floor(packN / 2)));
     if (hit) {
       for (var s = 0; s < ents.length; s++) if (ents[s].kind === 'summon' && !ents[s].dead) ents[s].cd = 0; // they bite on your swing, not on their own timer
     }
@@ -116,15 +118,18 @@
   }
   function dashStrike(world, p) {
     var x0 = p.x, y0 = p.y, x1 = p.x + p.boundDir.x * BOUND_DIST, y1 = p.y + p.boundDir.y * BOUND_DIST, i;
-    var charge = PB.Classes.of(world.save).attack === 'zeal';
-    var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: charge ? [14, 22] : [8, 12], critChance: 0.05 };
+    var kind = PB.Classes.of(world.save).attack, b = world.mods.behaviors || {};
+    var charge = kind === 'zeal', leap = kind === 'whirl', pass = kind === 'fury';
+    var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: charge || leap ? [14, 22] : pass ? [10, 16] : [8, 12], critChance: 0.05 };
     for (i = 0; i < world.ents.length; i++) {
       var e = world.ents[i];
-      if (!isEnemy(e) || distToSeg(e.x, e.y, x0, y0, x1, y1) > e.r + (charge ? 36 : 28)) continue;
+      if (!isEnemy(e) || distToSeg(e.x, e.y, x0, y0, x1, y1) > e.r + (charge || leap ? 36 : 28)) continue;
       e.lashed = 2; e.marked = Math.max(e.marked || 0, 2);
       if (charge && !e.boss) e.frozenT = Math.max(e.frozenT || 0, 0.35);
+      if (leap && !e.boss) e.frozenT = Math.max(e.frozenT || 0, 0.55);
+      if (pass && !e.boss) e.slowT = Math.max(e.slowT || 0, b.evadebolt ? 0.9 : 0.45);
       PB.World.damage(world, att, e);
-      PB.World.knock(e, x0, y0, charge ? 160 : 120);
+      PB.World.knock(e, x0, y0, leap ? 200 : charge ? 160 : 120);
     }
   }
 
@@ -232,22 +237,35 @@
 
   // Bone Spear: a line, not a cone. It curses. Only the skeletons swing on it. The whip stays the druid's.
   function boneSpear(world, p, input) {
-    var a = Math.atan2(input.aim.y - p.y, input.aim.x - p.x), st = world.mods.stats || {};
+    var a = Math.atan2(input.aim.y - p.y, input.aim.x - p.x), st = world.mods.stats || {}, b = world.mods.behaviors || {};
     var lv = world.save && world.save.player ? world.save.player.level : 1;
     var reach = 300 + 12 * Math.floor(lv / 5);
     p.facing = a; p.lashCd = Math.max(0.28, 0.4 - Math.min(4, Math.floor((st.thornDmg || 0) / 5)) * 2 / 60);
     var bonus = weaponBonus(world) + (st.spearDmg || 0);
     var x1 = p.x + Math.cos(a) * reach, y1 = p.y + Math.sin(a) * reach;
     var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [11 + bonus, 18 + bonus], critChance: 0.08, auraDmgInc: p.auraDmgInc || 0 };
-    var hit = false, ents = world.ents, i, e;
+    var hit = false, ents = world.ents, i, e, cursed = [];
     for (i = 0; i < ents.length; i++) {
       e = ents[i];
       if (!isEnemy(e) || distToSeg(e.x, e.y, p.x, p.y, x1, y1) > e.r + 18) continue;
-      e.amplify = Math.max(e.amplify || 0, 3 + (st.curseDur || 0));
+      e.amplify = Math.max(e.amplify || 0, (b.marrowheart ? 5 : 3) + (st.curseDur || 0));
       e.marked = Math.max(e.marked || 0, 3 + (st.markDur || 0));
       if ((st.decrep || 0) > 0 && !e.boss) e.slowT = Math.max(e.slowT || 0, st.decrep);
       PB.World.damage(world, att, e);
+      cursed.push(e);
       hit = true;
+    }
+    // Marrow Wand: the curse leaps once, to bodies beside the line. It does not pierce them.
+    if (hit && b.marrowheart) {
+      var dur = 5 + (st.curseDur || 0);
+      for (i = 0; i < ents.length; i++) {
+        e = ents[i];
+        if (!isEnemy(e) || cursed.indexOf(e) >= 0) continue;
+        for (var j = 0; j < cursed.length; j++) {
+          var sdx = e.x - cursed[j].x, sdy = e.y - cursed[j].y;
+          if (sdx * sdx + sdy * sdy <= 96 * 96) { e.amplify = Math.max(e.amplify || 0, dur); break; }
+        }
+      }
     }
     if (hit) {
       for (i = 0; i < ents.length; i++) if (ents[i].kind === 'summon' && !ents[i].dead && ents[i].role === 'wolf') ents[i].cd = 0;
@@ -277,6 +295,7 @@
     var rad = 74 + (st.splash || 0), burn = 5 * (1 + (st.burnDmg || 0) / 100);
     if (b.meteor) { rad += 28; burn *= 1.4; }
     if (b.cataclysm) rad += 18;
+    if (b.galeheart) rad += 22;
     var att = { id: 0, kind: 'player', team: 0, tags: [], x: tx, y: ty, dmg: [16 + bonus, 26 + bonus], critChance: Math.min(0.5, 0.07 + (st.boltCrit || 0) / 100), auraDmgInc: p.auraDmgInc || 0 };
     var hit = false;
     for (i = 0; i < ents.length; i++) {
@@ -292,6 +311,7 @@
     if (hit && b.cataclysm) {
       for (i = 0; i < ents.length; i++) if (ents[i].kind === 'summon' && !ents[i].dead && ents[i].role === 'wolf') ents[i].cd = 0;
     }
+    if (hit && b.galeheart) p.spirit = Math.min(p.maxSpirit, p.spirit + 4);
     PB.Events.emit(world.events, 'fireball', { x: tx, y: ty, radius: rad, hit: hit });
     if (hit) PB.World.hitStop(world, 28);
   }
@@ -359,17 +379,153 @@
     if (hit) PB.World.hitStop(world, 42);
   }
 
+  var FURY_FORK = 110, WHIRL_R = 72;
+
+  // Lightning Fury: a spear along the aim, then lightning to bodies off the line. Sisters answer. The whole pack does not.
+  function fury(world, p, input) {
+    var a = Math.atan2(input.aim.y - p.y, input.aim.x - p.x), st = world.mods.stats || {}, b = world.mods.behaviors || {};
+    var lv = world.save && world.save.player ? world.save.player.level : 1;
+    var reach = 280 + 12 * Math.floor(lv / 5);
+    p.facing = a; p.lashCd = Math.max(0.26, 0.42 - Math.min(4, Math.floor((st.thornDmg || 0) / 5)) * 2 / 60);
+    var bonus = weaponBonus(world) + (st.furyDmg || 0);
+    var forks = 1 + Math.min(3, st.furyForks || 0);
+    if (b.furyheart) forks += 1;
+    if (b.skyset) forks = Math.max(forks, 3);
+    var x1 = p.x + Math.cos(a) * reach, y1 = p.y + Math.sin(a) * reach;
+    var crit = Math.min(0.5, 0.08 + (st.furyCrit || 0) / 100);
+    var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [12 + bonus, 18 + bonus], critChance: crit, auraDmgInc: p.auraDmgInc || 0 };
+    var ents = world.ents, i, e, lined = [], primary = null, best = Infinity, seen = {};
+    for (i = 0; i < ents.length; i++) {
+      e = ents[i];
+      if (!isEnemy(e) || distToSeg(e.x, e.y, p.x, p.y, x1, y1) > e.r + 16) continue;
+      lined.push(e);
+      var d = rayDist(p.x, p.y, a, e.x, e.y);
+      if (d < best) { best = d; primary = e; }
+    }
+    function strike(ent, mul, mark) {
+      if (!ent || ent.dead || seen[ent.id]) return false;
+      seen[ent.id] = 1;
+      if (mark || ent === primary || b.skymark) ent.marked = Math.max(ent.marked || 0, 2 + (st.markDur || 0));
+      if (ent === primary) ent.lashed = 2;
+      var hitAtt = mul === 1 ? att : { id: 0, kind: 'player', team: 0, tags: [], x: ent.x, y: ent.y, dmg: [att.dmg[0] * mul, att.dmg[1] * mul], critChance: crit, auraDmgInc: att.auraDmgInc };
+      PB.World.damage(world, hitAtt, ent);
+      return true;
+    }
+    var hit = false;
+    for (i = 0; i < lined.length; i++) if (strike(lined[i], 1, b.skymark)) hit = true;
+    var bolts = [], origins = [], hop, n;
+    for (i = 0; i < lined.length; i++) origins.push(lined[i]);
+    if (!origins.length) origins.push({ x: x1, y: y1, id: 0 });
+    var hops = b.stormstrike ? 2 : 1, forked = 0;
+    for (hop = 0; hop < hops && forked < 8; hop++) {
+      var next = [];
+      for (n = 0; n < origins.length && forked < 8; n++) {
+        var origin = origins[n], picks = [];
+        for (i = 0; i < ents.length; i++) {
+          e = ents[i];
+          if (!isEnemy(e) || seen[e.id] || e === origin) continue;
+          var fdx = e.x - origin.x, fdy = e.y - origin.y, fd = fdx * fdx + fdy * fdy;
+          if (fd > FURY_FORK * FURY_FORK) continue;
+          picks.push({ e: e, d: fd });
+        }
+        picks.sort(function (u, v) { return u.d - v.d; });
+        var take = Math.min(forks, picks.length, 8 - forked);
+        for (i = 0; i < take; i++) {
+          e = picks[i].e;
+          if (!strike(e, 0.72, b.stormstrike)) continue;
+          if (!e.boss) e.slowT = Math.max(e.slowT || 0, 0.45);
+          bolts.push({ x: origin.x, y: origin.y, x2: e.x, y2: e.y });
+          next.push(e);
+          forked++;
+          hit = true;
+        }
+      }
+      origins = next;
+    }
+    if (hit) {
+      var back = st.furyLeech || 0;
+      if (back) p.hp = Math.min(p.maxHp, p.hp + back);
+      for (i = 0; i < ents.length; i++) {
+        e = ents[i];
+        if (e.kind !== 'summon' || e.dead) continue;
+        if (e.role === 'wolf' || (b.valkstand && e.role === 'bear') || (b.skymark && e.role === 'raven')) e.cd = 0;
+      }
+    }
+    PB.Events.emit(world.events, 'fury', { x: p.x, y: p.y, x2: x1, y2: y1, bolts: bolts, hit: hit });
+    if (hit) PB.World.hitStop(world, 26);
+  }
+
+  // Whirlwind: the whole ring, not an arc. A spin inside the window stacks frenzy. The warband answers. The whole pack does not.
+  function whirlwind(world, p, input) {
+    var a = Math.atan2(input.aim.y - p.y, input.aim.x - p.x), st = world.mods.stats || {}, b = world.mods.behaviors || {};
+    p.facing = a;
+    var maxStacks = 2 + Math.min(3, st.frenzyMax || 0);
+    if ((p.whirlT || 0) > 0) p.whirlN = Math.min(maxStacks, (p.whirlN || 0) + 1);
+    else p.whirlN = 1;
+    var stacks = p.whirlN;
+    p.whirlT = 2.4 + (b.whirlheart ? 1 : 0);
+    p.lashCd = Math.max(0.22, 0.5 - stacks * 0.04 - Math.min(4, Math.floor((st.thornDmg || 0) / 5)) * 2 / 60);
+    var reach = WHIRL_R + (b.whirlheart ? 18 : 0);
+    var mul = 1 + 0.18 * (stacks - 1);
+    var passes = b.berserk && stacks >= 3 ? 2 : 1;
+    var bonus = weaponBonus(world) + (st.whirlDmg || 0);
+    var ents = world.ents, hits = [], i, e, primary = null, best = Infinity;
+    for (i = 0; i < ents.length; i++) {
+      e = ents[i];
+      if (!isEnemy(e)) continue;
+      var dx = e.x - p.x, dy = e.y - p.y;
+      if (dx * dx + dy * dy > (reach + e.r) * (reach + e.r)) continue;
+      hits.push(e);
+      var d = dx * dx + dy * dy;
+      if (d < best) { best = d; primary = e; }
+    }
+    var hit = false, pass;
+    for (pass = 0; pass < passes; pass++) {
+      var pm = mul * (pass === 0 ? 1 : 0.7);
+      var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [(16 + bonus) * pm, (24 + bonus) * pm], critChance: 0.08, auraDmgInc: p.auraDmgInc || 0 };
+      for (i = 0; i < hits.length; i++) {
+        e = hits[i];
+        if (e.dead) continue;
+        if (e === primary || b.warcry) e.marked = Math.max(e.marked || 0, 2 + (st.markDur || 0));
+        if (e === primary) e.lashed = 2;
+        if (b.warcry && !e.boss && !(e.elite && e.elite.length)) e.fleeT = Math.max(e.fleeT || 0, 0.7);
+        PB.World.damage(world, att, e);
+        PB.World.knock(e, p.x, p.y, 70);
+        hit = true;
+      }
+    }
+    if (hit) {
+      var back = st.whirlLeech || 0;
+      if (back) p.hp = Math.min(p.maxHp, p.hp + back);
+      for (i = 0; i < ents.length; i++) {
+        e = ents[i];
+        if (e.kind !== 'summon' || e.dead) continue;
+        if (e.role === 'wolf' || e.role === 'bear') e.cd = 0;
+        if (b.orders) {
+          var ox = e.x - p.x, oy = e.y - p.y;
+          if (ox * ox + oy * oy <= 160 * 160) e.hp = Math.min(e.maxHp, e.hp + 4);
+        }
+      }
+    }
+    PB.Events.emit(world.events, 'whirl', { x: p.x, y: p.y, radius: reach, hit: hit, stacks: stacks });
+    if (hit) PB.World.hitStop(world, 50);
+  }
+
   function basicAttack(world, p, input) {
     var kind = PB.Classes.of(world.save).attack;
     if (kind === 'bonespear') boneSpear(world, p, input);
     else if (kind === 'fireball') fireball(world, p, input);
     else if (kind === 'zeal') zeal(world, p, input);
+    else if (kind === 'fury') fury(world, p, input);
+    else if (kind === 'whirl') whirlwind(world, p, input);
     else thornlash(world, p, input);
   }
 
   function update(world, input, dt) {
     var p = world.player;
     p.lashCd = Math.max(0, p.lashCd - dt);
+    p.whirlT = Math.max(0, (p.whirlT || 0) - dt);
+    if (p.whirlT <= 0) p.whirlN = 0;
     p.bloodedT = Math.max(0, (p.bloodedT || 0) - dt);
     p.boundCd = Math.max(0, p.boundCd - dt);
     p.iframes = Math.max(0, p.iframes - dt);

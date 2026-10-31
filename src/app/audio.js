@@ -212,6 +212,8 @@
         case 'bonespear': return playAt('whip', ev.x, { pitch: 1.35 });
         case 'fireball': return playAt('maul', ev.x, { pitch: 1.7, gain: 0.55 });
         case 'zeal': return playAt('maul', ev.x, { pitch: 0.82, gain: 0.7 });
+        case 'fury': return playAt('whip', ev.x, { pitch: 1.55 });
+        case 'whirl': return playAt('maul', ev.x, { pitch: 0.7, gain: 0.8 });
         case 'command': return SOUNDS['cmd_' + ev.kind] ? playAt('cmd_' + ev.kind, undefined) : null;
         case 'mark':
           if (A.lastCaw >= 0 && now() - A.lastCaw < CAW_GAP - 1e-9) return null;

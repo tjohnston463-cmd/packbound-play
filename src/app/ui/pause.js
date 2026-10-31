@@ -59,6 +59,7 @@
 
   function synergies() {
     var out = [
+      'New Hunt picks a calling. Only the Wildcaller\'s whole pack bites on the swing, and four or more of them feed Spirit back when the whip lands.',
       'The wood names a quarry. It takes more damage, gives more experience, and fills the Chorus faster.',
       'Hold the whip on a foe. The pack leaves nearer enemies to bite the one on your aim, and it hits harder.',
       'At camp, Wear upgrades puts on anything in the bag that beats what you have.',
