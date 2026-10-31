@@ -74,6 +74,7 @@
       'At camp, Gamble spends Dust on a magic, rare, set or unique. Never a plain piece. The roll follows the deepest wood you have opened, and the Moon.',
       'After your first clear, one open wood is the Terror. It is marked in red. Prey is tougher and drops better. Call the Terror onward for 4 Dust.',
       'Your own hits can crush a tough body, strike twice, and return life or Spirit. Zeal, the claw, the spin, the javelin, the spear and the fireball each feed one of those. Gear can too.',
+      PB.Wards ? PB.Wards.HELP : 'The wood bites in an element. Gear wards you.',
       'The belt holds life flasks, spirit flasks and Moonflasks. They drop in the wood and do not fill the bag. A boss always leaves a Moonflask. Camp sells them for Dust. A heavy hit staggers your step until you drink.',
       'When the last summon of a type falls, it waits in the Den.'
     ];

@@ -95,6 +95,7 @@
       if (el.indexOf('packbane') >= 0) e.packbane = true;
     }
     if (sp.champion) e.r = Math.round(e.r * 1.12);
+    if (PB.Wards) PB.Wards.stamp(e, d);
     if (e.boss && d) d.bossId = e.id;
     return e;
   }

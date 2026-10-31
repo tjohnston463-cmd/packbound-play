@@ -196,6 +196,12 @@
       case 'leech':
         number(j, ev, false, 'dot');
         return;
+      case 'ward':
+        addNumber(j, ev.dst, ev.x, ev.y - 16, 0, false, j.time, 'ward');
+        return;
+      case 'ward-break':
+        ring(j, ev.x, ev.y, 8, 32, 0.28, ev.element === 'frost' ? 0x9fd8ff : ev.element === 'flame' ? 0xff7a3a : ev.element === 'spark' ? 0xf5e46a : 0x8fd34a, 2);
+        return;
       case 'hit':
       case 'crit':
         if (ev.crush > 0) addNumber(j, ev.dst, ev.x, ev.y - 12, ev.crush, false, j.time, 'crush');
@@ -209,10 +215,11 @@
           return;
         }
         if (ev.srcKind === 'player') { // the hunter's own swing
+          var bite = ev.element === 'flame' ? 0xff7a3a : ev.element === 'frost' ? 0x9fd8ff : ev.element === 'spark' ? 0xf5e46a : ev.element === 'blight' ? C.poison : C.thorn;
           j.flashes.set(ev.dst, ev.deadly ? 0.1 : 0.06); addTrauma(j, ev.deadly || ev.crush ? 0.14 : 0.05);
-          emit(j, ev.x, ev.y, ev.deadly ? 10 : 6, ev.deadly ? C.gold : C.thorn, { speed: ev.deadly ? 240 : 190, life: 0.35, size: ev.deadly ? 4 : 3 });
+          emit(j, ev.x, ev.y, ev.deadly ? 10 : 6, ev.deadly ? C.gold : bite, { speed: ev.deadly ? 240 : 190, life: 0.35, size: ev.deadly ? 4 : 3 });
           if (ev.crush) ring(j, ev.x, ev.y, 8, 36, 0.22, 0xff7a3a, 3);
-          number(j, ev, ev.type === 'crit' || !!ev.deadly, 'hit');
+          number(j, ev, ev.type === 'crit' || !!ev.deadly, ev.element || 'hit');
           return;
         }
         if (ev.type === 'crit') {

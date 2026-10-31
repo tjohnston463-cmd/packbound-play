@@ -45,7 +45,12 @@
     { id: 'of_crush',   kind: 'stat', stat: 'crush',       group: 's_crush',  slots: ['staff', 'pelt', 'charm'], ilvl: 6, name: 'of Crushing', v: [8, 18], text: 'Your hits crush {v}% of an elite, champion or boss\'s current life' },
     { id: 'of_strike',  kind: 'stat', stat: 'deadly',      group: 's_deadly', slots: ['staff', 'mask', 'charm'], ilvl: 5, name: 'of Striking', v: [8, 20], text: '{v}% chance your hits strike twice as hard' },
     { id: 'of_vein',    kind: 'stat', stat: 'lifeLeech',   group: 's_vein',   slots: ['staff', 'pelt', 'charm'], ilvl: 4, name: 'of the Vein', v: [2, 6], text: 'Your hits return {v}% of damage as life' },
-    { id: 'of_well',    kind: 'stat', stat: 'spiritLeech', group: 's_well',   slots: ['mask', 'talisman', 'charm'], ilvl: 4, name: 'of the Well', v: [2, 6], text: 'Your hits return {v}% of damage as Spirit' }
+    { id: 'of_well',    kind: 'stat', stat: 'spiritLeech', group: 's_well',   slots: ['mask', 'talisman', 'charm'], ilvl: 4, name: 'of the Well', v: [2, 6], text: 'Your hits return {v}% of damage as Spirit' },
+    { id: 'of_embers',  kind: 'stat', stat: 'flameRes',   group: 's_flame',  slots: ['pelt', 'mask', 'charm'], ilvl: 1, name: 'of Embers', v: [12, 28], text: '+{v} flame ward. The cap is 75, and a penalty comes off first.' },
+    { id: 'of_rime',    kind: 'stat', stat: 'frostRes',   group: 's_frost',  slots: ['pelt', 'mask', 'charm'], ilvl: 1, name: 'of Rime', v: [12, 28], text: '+{v} frost ward. The cap is 75, and a penalty comes off first.' },
+    { id: 'of_spark',   kind: 'stat', stat: 'sparkRes',   group: 's_spark',  slots: ['pelt', 'mask', 'charm'], ilvl: 2, name: 'of the Spark', v: [12, 28], text: '+{v} spark ward. The cap is 75, and a penalty comes off first.' },
+    { id: 'of_rot',     kind: 'stat', stat: 'blightRes',  group: 's_blight', slots: ['pelt', 'mask', 'charm'], ilvl: 1, name: 'of the Rot', v: [12, 28], text: '+{v} blight ward. The cap is 75, and a penalty comes off first.' },
+    { id: 'of_warding', kind: 'stat', stat: 'allRes',     group: 's_allres', slots: ['talisman', 'pelt'], ilvl: 8, name: 'of Warding', v: [8, 16], text: '+{v} to every ward. The cap is 75. Stack past it for the Terror.' }
   ];
   PB.AFFIX_BY_ID = {};
   PB.AFFIXES.forEach(function (a) { PB.AFFIX_BY_ID[a.id] = a; });

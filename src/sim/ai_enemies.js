@@ -65,7 +65,8 @@
       }
       return;
     }
-    var att = { id: tg.owner, kind: 'enemy', team: 1, tags: [], dmg: [tg.dmg, tg.dmg], critChance: 0 };
+    var el = owner && (owner.element || (PB.Wards && PB.Wards.elementOf(owner.type)));
+    var att = { id: tg.owner, kind: 'enemy', team: 1, tags: [], dmg: [tg.dmg, tg.dmg], critChance: 0, element: el || null, eleShare: el && PB.Wards ? PB.Wards.IN_SHARE : 0 };
     var ents = world.ents, hits = 0, p = world.player;
     var guard = p.hp > 0 && contains(tg, p.x, p.y, p.r) ? interceptor(world, p) : null;
     if (guard) { // Hearthwolf: leaps in front of the druid and eats the blow
@@ -156,7 +157,7 @@
     if (e.type === 'staticwisp' && t.kind === 'summon') { // chains to one more summon
       var c = world.hash.nearest(t.x, t.y, CHAIN_R, function (o) { return isFriend(o) && o !== t; });
       if (c) {
-        PB.World.damage(world, { id: e.id, kind: 'enemy', team: 1, tags: [], dmg: [e.dmg[0] * CHAIN_SHARE, e.dmg[1] * CHAIN_SHARE], critChance: 0 }, c);
+        PB.World.damage(world, { id: e.id, kind: 'enemy', team: 1, tags: [], dmg: [e.dmg[0] * CHAIN_SHARE, e.dmg[1] * CHAIN_SHARE], critChance: 0, element: e.element || null, eleShare: e.element && PB.Wards ? PB.Wards.IN_SHARE : 0 }, c);
         PB.Events.emit(world.events, 'chain', { x: t.x, y: t.y, x2: c.x, y2: c.y });
       }
     }

@@ -213,6 +213,8 @@
         case 'summon': return KEY[ev.unit] ? playAt('summon_' + ev.unit, ev.x) : null;
         case 'leech': return null;
         case 'terror': return play('phase');
+        case 'ward-break': return playAt('linkcut', ev.x, { pitch: 1.4, gain: 0.55 });
+        case 'ward': return null;
         case 'bonespear': return playAt('whip', ev.x, { pitch: 1.35 });
         case 'fireball': return playAt('maul', ev.x, { pitch: 1.7, gain: 0.55 });
         case 'zeal': return playAt('maul', ev.x, { pitch: 0.82, gain: 0.7 });

@@ -54,6 +54,7 @@
     };
     if (def.role) e.role = def.role;
     if (extra) for (var k in extra) e[k] = extra[k];
+    if (kind === 'enemy' && PB.Wards && e.element == null) e.element = PB.Wards.elementOf(type);
     if (temp) world.temps.push(e); else world.counts[kind]++;
     world.ents.push(e);
     world.byId[e.id] = e;
@@ -130,6 +131,12 @@
     if (src && src.packbane && def.kind === 'summon') { amount *= 2; h.amount = amount; } // Packbane elites
     if (def.shield > 0) { soak = Math.min(def.shield, amount); def.shield -= soak; amount -= soak; }
     amount = PB.Behaviors.hurt(world, att, def, amount);
+    if (PB.Wards) {
+      var wr = PB.Wards.mitigate(world, att, def, amount);
+      if (wr.amount !== amount) { amount = wr.amount; h.amount = amount; }
+      h.element = wr.element;
+      h.warded = wr.stopped;
+    }
     def.hp -= amount;
     h.taken = amount;
     if (src && src.vampiric && !src.dead && amount > 0) src.hp = Math.min(src.maxHp, src.hp + amount * 0.2); // Vampiric elites
@@ -138,7 +145,8 @@
     if (PB.Terror) PB.Terror.bite(world, att, def, h); // Deadly, Crushing Blow, and leech on your own hits
     var shown = h.taken - (h.crush || 0);
     // shown is the strike (gold when it is deadly). Crush is its own number. Absorbed is what a shield ate.
-    PB.Events.emit(world.events, h.crit ? 'crit' : 'hit', { src: att.id, dst: def.id, amount: shown, absorbed: soak, x: def.x, y: def.y, srcKind: att.kind, dstKind: def.kind, rules: h.rules, deadly: !!h.deadly, crush: h.crush || 0 });
+    PB.Events.emit(world.events, h.crit ? 'crit' : 'hit', { src: att.id, dst: def.id, amount: shown, absorbed: soak, x: def.x, y: def.y, srcKind: att.kind, dstKind: def.kind, rules: h.rules, deadly: !!h.deadly, crush: h.crush || 0, element: h.element || null, warded: !!h.warded });
+    if (h.warded) PB.Events.emit(world.events, 'ward', { src: att.id, dst: def.id, x: def.x, y: def.y, element: h.element || null });
     if ((h.leechLife || 0) + (h.leechSpirit || 0) >= 1 && world.player) PB.Events.emit(world.events, 'leech', { src: att.id, dst: world.player.id, amount: (h.leechLife || 0) + (h.leechSpirit || 0), x: world.player.x, y: world.player.y, dstKind: 'player' });
     if (h.crit || h.deadly) hitStop(world, 40);
     if (h.crush) hitStop(world, 50);

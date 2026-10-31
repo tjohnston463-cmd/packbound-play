@@ -355,6 +355,14 @@
       g.font = '11px ' + SERIF; g.textAlign = 'center'; g.fillStyle = '#e8a040';
       g.fillText('champion', e.x, top - (quarry ? 30 : 16)); g.textAlign = 'left';
     }
+    if (e.ward && PB.Wards) {
+      var cracked = world && e.wardBreak > world.time;
+      ring(g, e.x, e.y + e.r * 0.2, e.r + 14, cracked ? '#9a9a9a' : (PB.Wards.COLOR[e.ward] || '#fff'), 2, cracked ? [2, 4] : [6, 3]);
+      g.font = '11px ' + SERIF; g.textAlign = 'center';
+      g.fillStyle = cracked ? '#b6e36a' : (PB.Wards.COLOR[e.ward] || '#fff');
+      g.fillText(cracked ? 'ward cracked' : PB.Wards.NAMES[e.ward] + ' Ward', e.x, top - (quarry || e.champion ? 44 : 30));
+      g.textAlign = 'left';
+    }
     if (e.elite && e.elite.length) {
       var names = [], ei;
       for (ei = 0; ei < e.elite.length; ei++) {
@@ -872,6 +880,13 @@
       var n = j.numbers[i];
       if (!n.active) continue;
       var age = j.time - n.t, k = age / PB.Juice.NUM_LIFE;
+      if (n.kind === 'ward') {
+        g.globalAlpha = k > 0.7 ? Math.max(0, (1 - k) / 0.3) : 1;
+        g.font = 'bold 16px ' + SERIF; g.textAlign = 'center'; g.lineWidth = 3; g.strokeStyle = 'rgba(10,6,4,0.9)'; g.fillStyle = '#e8d8a8';
+        var wy = n.y - 18 - PB.Juice.numberRise(age);
+        g.strokeText('Ward', n.x, wy); g.fillText('Ward', n.x, wy); g.textAlign = 'left';
+        continue;
+      }
       var text = String(Math.max(1, Math.round(n.amount))) + (n.crit ? '!' : '');
       var kind = n.crit ? 'crit' : n.kind, row = D.row[kind] !== undefined ? D.row[kind] : 0;
       var sc = (n.crit ? 1.5 * PB.M.lerp(1.4, 1, Math.min(1, age / 0.12)) : 1) * (n.kind === 'dot' ? 0.75 : 1);

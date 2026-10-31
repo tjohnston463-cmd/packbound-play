@@ -34,7 +34,8 @@
     { id: 'marrowwand', base: 'ashstaff',    name: 'Marrow Wand',              ilvl: 6,  cls: 'necro', behaviors: { marrowheart: 1 }, text: 'Bone Spear\'s curse lasts longer and leaps once to a body beside the line. It does not pierce that body. Only a Gravecaller can find this.' },
     { id: 'galeeye',    base: 'stagmask',    name: 'Eye of the Gale',          ilvl: 8,  cls: 'sorc', behaviors: { galeheart: 1 }, text: 'Fireball bursts wider, and a landed blast returns 4 Mana. Only a Stormbinder can find this.' },
     { id: 'thunderstroke', base: 'antlerstaff', name: 'Thunderstroke',         ilvl: 7,  cls: 'amaz', behaviors: { furyheart: 1 }, text: 'Lightning Fury forks once more. Only a Skymark can find this.' },
-    { id: 'grimspire',  base: 'ashstaff',    name: 'Grimspire',                ilvl: 7,  cls: 'barb', behaviors: { whirlheart: 1 }, text: 'Whirlwind reaches farther, and the frenzy holds a second longer. Only a Warbound can find this.' }
+    { id: 'grimspire',  base: 'ashstaff',    name: 'Grimspire',                ilvl: 7,  cls: 'barb', behaviors: { whirlheart: 1 }, text: 'Whirlwind reaches farther, and the frenzy holds a second longer. Only a Warbound can find this.' },
+    { id: 'crackedmoon', base: 'moontotem', name: 'Cracked Moon',            ilvl: 14, behaviors: { sunder: 1 }, text: 'A ward no longer stops its element. The body takes a fifth of it, and your own wards sit 20 lower. Any calling can find this.' }
   ];
   PB.BASE_BY_ID = {};
   PB.ITEM_BASES.forEach(function (b) { PB.BASE_BY_ID[b.id] = b; });

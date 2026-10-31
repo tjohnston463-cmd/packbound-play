@@ -504,7 +504,7 @@
     return c;
   }
 
-  var GLYPHS = '0123456789!+', GW = 16, GH = 24, NUM_COLORS = { hit: '#f4efe2', crit: '#ffcc44', hurt: '#ff6a5a', dot: '#9fe060', crush: '#ff7a3a' };
+  var GLYPHS = '0123456789!+', GW = 16, GH = 24, NUM_COLORS = { hit: '#f4efe2', crit: '#ffcc44', hurt: '#ff6a5a', dot: '#9fe060', crush: '#ff7a3a', blight: '#8fd34a', flame: '#ff7a3a', frost: '#9fd8ff', spark: '#f5e46a' };
   var SERIF = '"Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif';
   function digits(doc) {
     var kinds = Object.keys(NUM_COLORS), c = canvas(doc, GW * GLYPHS.length, GH * kinds.length), g = c.getContext('2d');
@@ -514,7 +514,9 @@
       g.fillStyle = NUM_COLORS[k];
       for (var i = 0; i < GLYPHS.length; i++) { g.strokeText(GLYPHS[i], i * GW + GW / 2, row * GH + GH / 2 + 1); g.fillText(GLYPHS[i], i * GW + GW / 2, row * GH + GH / 2 + 1); }
     });
-    return { canvas: c, row: { hit: 0, crit: 1, hurt: 2, dot: 3, crush: 4 }, glyphs: GLYPHS, gw: GW, gh: GH };
+    var row = {};
+    kinds.forEach(function (k, i) { row[k] = i; });
+    return { canvas: c, row: row, glyphs: GLYPHS, gw: GW, gh: GH };
   }
 
   function decals(doc) {

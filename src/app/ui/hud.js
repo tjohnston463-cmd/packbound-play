@@ -263,6 +263,12 @@
     if (bite) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, bite, 12, 90, UI.font(12), '#ffb070'); g.restore(); }
     var setLine = world.save && PB.Sets ? PB.Sets.line(world.save) : '';
     if (setLine) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, setLine, 12, 108, UI.font(12), '#8fe07a'); g.restore(); }
+    var wards = world.mods && PB.Wards ? PB.Wards.hudLine(world) : '';
+    if (wards) {
+      var lowWard = false, wi;
+      if (PB.Wards) for (wi = 0; wi < PB.Wards.ELEMENTS.length; wi++) if (PB.Wards.resist(world, PB.Wards.ELEMENTS[wi]) < 0) lowWard = true;
+      g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, wards, 12, 144, UI.font(12), lowWard ? '#e07060' : '#d7c4a0'); g.restore();
+    }
     if (world.boon) {
       var bn = world.boon, bl = bn.name + (bn.until ? ' ' + Math.max(0, Math.ceil(bn.until - world.time)) + 's' : (bn.waveBound ? ' this wave' : ''));
       g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, bl, 12, 126, UI.font(13, true), bn.cursed ? '#e85a4a' : '#ffd678'); g.restore();
@@ -383,6 +389,7 @@
     if (pts) lines.push(pts);
     var setLine = world.save && PB.Sets ? PB.Sets.line(world.save) : '';
     if (setLine) lines.push(setLine);
+    if (PB.Wards) lines.push(PB.Wards.hudLine(world));
     return lines;
   }
 

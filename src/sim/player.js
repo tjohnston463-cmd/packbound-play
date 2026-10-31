@@ -51,6 +51,7 @@
     if (beh.wereheart) were += 1;
     var claw = were > 0 ? (1 + 0.18 * were) : 1;
     var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [(LASH_DMG[0] + td + bonus) * claw, (LASH_DMG[1] + td + bonus) * claw], critChance: 0.05, auraDmgInc: p.auraDmgInc || 0 };
+    if (PB.Wards) PB.Wards.arm(world, att);
     var ents = world.ents, hits = [], i, e, primary = null, best = Infinity;
     for (i = 0; i < ents.length; i++) {
       e = ents[i];
@@ -70,7 +71,8 @@
         if ((stats.poisonDmg || 0) > 0) PB.World.applyDot(e, 'poison', 4 * (1 + stats.poisonDmg / 100), 3, 0);
         var heavy = (e.maxHp > 0 && e.hp < e.maxHp * 0.5) ? 1.5 : 1;
         if (e.lashHits >= 3) { e.lashHits = 0; e.frozenT = Math.max(e.frozenT || 0, 0.6); heavy *= 2; }
-        if (heavy > 1) strike = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [att.dmg[0] * heavy, att.dmg[1] * heavy], critChance: 0.05, auraDmgInc: att.auraDmgInc };
+        if (heavy > 1) strike = swung(att, [att.dmg[0] * heavy, att.dmg[1] * heavy]);
+        if (PB.Wards) PB.Wards.open(world, e, 'aim');
         shaveDen(world);
       }
       PB.World.damage(world, strike, e);
@@ -121,6 +123,7 @@
     var kind = PB.Classes.of(world.save).attack, b = world.mods.behaviors || {};
     var charge = kind === 'zeal', leap = kind === 'whirl', pass = kind === 'fury';
     var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: charge || leap ? [14, 22] : pass ? [10, 16] : [8, 12], critChance: 0.05 };
+    if (PB.Wards) PB.Wards.arm(world, att);
     for (i = 0; i < world.ents.length; i++) {
       var e = world.ents[i];
       if (!isEnemy(e) || distToSeg(e.x, e.y, x0, y0, x1, y1) > e.r + (charge || leap ? 36 : 28)) continue;
@@ -128,6 +131,7 @@
       if (charge && !e.boss) e.frozenT = Math.max(e.frozenT || 0, 0.35);
       if (leap && !e.boss) e.frozenT = Math.max(e.frozenT || 0, 0.55);
       if (pass && !e.boss) e.slowT = Math.max(e.slowT || 0, b.evadebolt ? 0.9 : 0.45);
+      if (PB.Wards) PB.Wards.open(world, e, 'dash');
       PB.World.damage(world, att, e);
       PB.World.knock(e, x0, y0, leap ? 200 : charge ? 160 : 120);
     }
@@ -139,6 +143,15 @@
     var st = world.mods.stats || {};
     var lv = world.save && world.save.player ? world.save.player.level : 1;
     return (st.thornDmg || 0) + Math.floor((lv - 1) / 2);
+  }
+
+  // A heavier or forked copy of a swing keeps the element the wards read.
+  function swung(att, dmg, x, y) {
+    return {
+      id: att.id, kind: 'player', team: 0, tags: [], x: x != null ? x : att.x, y: y != null ? y : att.y,
+      dmg: dmg || att.dmg, critChance: att.critChance, auraDmgInc: att.auraDmgInc || 0,
+      element: att.element || null, eleShare: att.eleShare || 0, elePierce: att.elePierce || 0
+    };
   }
 
   function spawnPoint(world, type, p, aim) {
@@ -244,6 +257,7 @@
     var bonus = weaponBonus(world) + (st.spearDmg || 0);
     var x1 = p.x + Math.cos(a) * reach, y1 = p.y + Math.sin(a) * reach;
     var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [11 + bonus, 18 + bonus], critChance: 0.08, auraDmgInc: p.auraDmgInc || 0 };
+    if (PB.Wards) PB.Wards.arm(world, att);
     var hit = false, ents = world.ents, i, e, cursed = [];
     for (i = 0; i < ents.length; i++) {
       e = ents[i];
@@ -251,6 +265,7 @@
       e.amplify = Math.max(e.amplify || 0, (b.marrowheart ? 5 : 3) + (st.curseDur || 0));
       e.marked = Math.max(e.marked || 0, 3 + (st.markDur || 0));
       if ((st.decrep || 0) > 0 && !e.boss) e.slowT = Math.max(e.slowT || 0, st.decrep);
+      if (PB.Wards) PB.Wards.open(world, e, 'line');
       PB.World.damage(world, att, e);
       cursed.push(e);
       hit = true;
@@ -297,6 +312,7 @@
     if (b.cataclysm) rad += 18;
     if (b.galeheart) rad += 22;
     var att = { id: 0, kind: 'player', team: 0, tags: [], x: tx, y: ty, dmg: [16 + bonus, 26 + bonus], critChance: Math.min(0.5, 0.07 + (st.boltCrit || 0) / 100), auraDmgInc: p.auraDmgInc || 0 };
+    if (PB.Wards) PB.Wards.arm(world, att);
     var hit = false;
     for (i = 0; i < ents.length; i++) {
       e = ents[i];
@@ -304,8 +320,9 @@
       var ex = e.x - tx, ey = e.y - ty;
       if (ex * ex + ey * ey > (rad + e.r) * (rad + e.r)) continue;
       if (b.cataclysm) e.marked = Math.max(e.marked || 0, 2);
-      PB.World.damage(world, att, e);
-      if (!e.dead) PB.World.applyDot(e, 'burn', burn, 3, 0);
+      if (PB.Wards) PB.Wards.open(world, e, 'flame');
+      var landed = PB.World.damage(world, att, e);
+      if (!e.dead && !(landed && landed.warded)) PB.World.applyDot(e, 'burn', burn, 3, 0);
       hit = true;
     }
     if (hit && b.cataclysm) {
@@ -350,12 +367,14 @@
     for (var s = 0; s < strikes; s++) {
       var mul = (s === 0 ? sac : 0.62);
       var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [(14 + bonus) * mul, (22 + bonus) * mul], critChance: 0.08, auraDmgInc: p.auraDmgInc || 0 };
+      if (PB.Wards) PB.Wards.arm(world, att);
       for (i = 0; i < hits.length; i++) {
         e = hits[i];
         if (e.dead) continue;
         if (curse) e.amplify = Math.max(e.amplify || 0, curse);
         if (e === primary || b.fanaticism) e.marked = Math.max(e.marked || 0, 2 + (st.markDur || 0));
         if (e === primary) e.lashed = 2;
+        if (PB.Wards) PB.Wards.open(world, e, 'arc');
         PB.World.damage(world, att, e);
         PB.World.knock(e, p.x, p.y, 36);
         hit = true;
@@ -394,6 +413,7 @@
     var x1 = p.x + Math.cos(a) * reach, y1 = p.y + Math.sin(a) * reach;
     var crit = Math.min(0.5, 0.08 + (st.furyCrit || 0) / 100);
     var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [12 + bonus, 18 + bonus], critChance: crit, auraDmgInc: p.auraDmgInc || 0 };
+    if (PB.Wards) PB.Wards.arm(world, att);
     var ents = world.ents, i, e, lined = [], primary = null, best = Infinity, seen = {};
     for (i = 0; i < ents.length; i++) {
       e = ents[i];
@@ -402,12 +422,13 @@
       var d = rayDist(p.x, p.y, a, e.x, e.y);
       if (d < best) { best = d; primary = e; }
     }
-    function strike(ent, mul, mark) {
+    function strike(ent, mul, mark, seam) {
       if (!ent || ent.dead || seen[ent.id]) return false;
       seen[ent.id] = 1;
       if (mark || ent === primary || b.skymark) ent.marked = Math.max(ent.marked || 0, 2 + (st.markDur || 0));
       if (ent === primary) ent.lashed = 2;
-      var hitAtt = mul === 1 ? att : { id: 0, kind: 'player', team: 0, tags: [], x: ent.x, y: ent.y, dmg: [att.dmg[0] * mul, att.dmg[1] * mul], critChance: crit, auraDmgInc: att.auraDmgInc };
+      if (!seam && PB.Wards) PB.Wards.open(world, ent, 'line');
+      var hitAtt = mul === 1 ? att : swung(att, [att.dmg[0] * mul, att.dmg[1] * mul], ent.x, ent.y);
       PB.World.damage(world, hitAtt, ent);
       return true;
     }
@@ -432,7 +453,7 @@
         var take = Math.min(forks, picks.length, 8 - forked);
         for (i = 0; i < take; i++) {
           e = picks[i].e;
-          if (!strike(e, 0.72, b.stormstrike)) continue;
+          if (!strike(e, 0.72, b.stormstrike, true)) continue;
           if (!e.boss) e.slowT = Math.max(e.slowT || 0, 0.45);
           bolts.push({ x: origin.x, y: origin.y, x2: e.x, y2: e.y });
           next.push(e);
@@ -483,12 +504,14 @@
     for (pass = 0; pass < passes; pass++) {
       var pm = mul * (pass === 0 ? 1 : 0.7);
       var att = { id: 0, kind: 'player', team: 0, tags: [], x: p.x, y: p.y, dmg: [(16 + bonus) * pm, (24 + bonus) * pm], critChance: 0.08, auraDmgInc: p.auraDmgInc || 0 };
+      if (PB.Wards) PB.Wards.arm(world, att);
       for (i = 0; i < hits.length; i++) {
         e = hits[i];
         if (e.dead) continue;
         if (e === primary || b.warcry) e.marked = Math.max(e.marked || 0, 2 + (st.markDur || 0));
         if (e === primary) e.lashed = 2;
         if (b.warcry && !e.boss && !(e.elite && e.elite.length)) e.fleeT = Math.max(e.fleeT || 0, 0.7);
+        if (stacks >= 2 && PB.Wards) PB.Wards.open(world, e, 'spin');
         PB.World.damage(world, att, e);
         PB.World.knock(e, p.x, p.y, 70);
         hit = true;
