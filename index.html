@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Packbound</title>
+  <style>html,body{margin:0;height:100%;background:#07090b;overflow:hidden}canvas{display:block;margin:0 auto;image-rendering:auto}
+    #phone{display:none;color:#e8e0c8;font:17px/1.5 "Trebuchet MS","Segoe UI",sans-serif;padding:14px 18px;white-space:pre-line}
+    #phone p{margin:0 0 14px;color:#b9b29c}#phone-status{color:#efe6cc}
+    @media (max-width: 600px) and (orientation: portrait){#phone{display:block}}</style>
+</head>
+<body>
+  <canvas id="game" width="1280" height="720" tabindex="0" oncontextmenu="return false"></canvas>
+  <!-- Narrow portrait screens: the field is a strip at the top, so the key numbers repeat here in readable text. -->
+  <div id="phone"><p>Packbound is played with a keyboard and mouse, so it is best on a computer. Turn the phone sideways for a bigger view.</p><div id="phone-status"></div></div>
+  <!-- core -->
+  <script src="src/core/rng.js"></script>
+  <script src="src/core/mathx.js"></script>
+  <script src="src/core/loop.js"></script>
+  <script src="src/core/spatial.js"></script>
+  <script src="src/core/events.js"></script>
+  <script src="src/core/inputq.js"></script>
+  <!-- data -->
+  <script src="src/data/summons.js"></script>
+  <script src="src/data/fusions.js"></script>
+  <script src="src/data/evolutions.js"></script>
+  <script src="src/data/affixes.js"></script>
+  <script src="src/data/items.js"></script>
+  <script src="src/data/sets.js"></script>
+  <script src="src/data/runes.js"></script>
+  <script src="src/data/skills.js"></script>
+  <script src="src/data/zones.js"></script>
+  <!-- sim -->
+  <script src="src/sim/combat.js"></script>
+  <script src="src/sim/waves.js"></script>
+  <script src="src/sim/evolution.js"></script>
+  <script src="src/sim/fusion.js"></script>
+  <script src="src/sim/altar.js"></script>
+  <script src="src/sim/loot.js"></script>
+  <script src="src/sim/drops.js"></script>
+  <script src="src/sim/skills.js"></script>
+  <script src="src/sim/mods.js"></script>
+  <script src="src/sim/camp.js"></script>
+  <script src="src/sim/cube.js"></script>
+  <script src="src/sim/save.js"></script>
+  <script src="src/sim/progression.js"></script>
+  <script src="src/sim/roster.js"></script>
+  <script src="src/sim/feeding.js"></script>
+  <script src="src/sim/chorus.js"></script>
+  <script src="src/sim/commands.js"></script>
+  <script src="src/sim/world.js"></script>
+  <script src="src/sim/player.js"></script>
+  <script src="src/sim/ai_summons.js"></script>
+  <script src="src/sim/ai_enemies.js"></script>
+  <script src="src/sim/ai_fusions.js"></script>
+  <script src="src/sim/skinwalk.js"></script>
+  <script src="src/sim/behaviors.js"></script>
+  <script src="src/sim/director.js"></script>
+  <script src="src/sim/bosses.js"></script>
+  <!-- app -->
+  <script src="src/app/input.js"></script>
+  <script src="src/app/graphics.js"></script>
+  <script src="src/app/sprites.js"></script>
+  <script src="src/app/rigs.js"></script>
+  <script src="src/app/sculpt.js"></script>
+  <script src="src/app/terrain.js"></script>
+  <script src="src/app/juice.js"></script>
+  <script src="src/app/audio.js"></script>
+  <script src="src/app/render.js"></script>
+  <script src="src/app/ui/widgets.js"></script>
+  <script src="src/app/ui/title.js"></script>
+  <script src="src/app/ui/pause.js"></script>
+  <script src="src/app/ui/hud.js"></script>
+  <script src="src/app/ui/inventory.js"></script>
+  <script src="src/app/ui/skilltree.js"></script>
+  <script src="src/app/ui/pack.js"></script>
+  <script src="src/app/ui/altar.js"></script>
+  <script src="src/app/ui/camp.js"></script>
+  <script src="src/app/ui/endscreens.js"></script>
+  <script src="src/app/game.js"></script>
+  <script src="src/app/debug.js"></script>
+</body>
+</html>
