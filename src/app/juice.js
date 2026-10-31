@@ -202,6 +202,14 @@
       case 'ward-break':
         ring(j, ev.x, ev.y, 8, 32, 0.28, ev.element === 'frost' ? 0x9fd8ff : ev.element === 'flame' ? 0xff7a3a : ev.element === 'spark' ? 0xf5e46a : 0x8fd34a, 2);
         return;
+      case 'bloodpack':
+        ring(j, ev.x, ev.y, 14, 70, 0.4, 0xffd678, 3);
+        emit(j, ev.x, ev.y, 12, 0xffd678, { speed: 120, life: 0.45, size: 3 });
+        return;
+      case 'pack-break':
+        addTrauma(j, ev.mad ? 0.16 : 0.08);
+        ring(j, ev.x, ev.y, 10, ev.mad ? 64 : 40, 0.3, ev.mad ? 0xff5a3a : 0xcbb98a, 3);
+        return;
       case 'slaughter':
         if (ev.milestone) {
           addTrauma(j, 0.24);

@@ -211,6 +211,8 @@
         case 'kill':
           if (ev.team === 0) return playAt('summonDie', ev.x, { root: KEY[ev.unit] || 220 });
           return playAt(ev.elite || ev.boss ? 'eliteDeath' : 'death', ev.x);
+        case 'bloodpack': return playAt('slaughter', ev.x, { pitch: 0.62, gain: 0.7 });
+        case 'pack-break': return playAt(ev.mad ? 'eliteDeath' : 'death', ev.x, { gain: 0.7 });
         case 'slaughter':
           if (ev.milestone) return play('phase') ? 'phase' : null;
           return playAt('slaughter', ev.x, { pitch: 0.85 + Math.min(12, ev.n || 1) * 0.04, gain: 0.55 });

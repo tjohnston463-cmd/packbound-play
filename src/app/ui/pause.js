@@ -66,6 +66,7 @@
       'The wood names a quarry. It takes more damage, gives more experience, and fills the Chorus faster.',
       'Hold the whip on a foe. The pack leaves nearer enemies to bite the one on your aim, and it hits harder.',
       PB.Slaughter ? PB.Slaughter.HELP : 'Kills chain. At five the chain starts paying.',
+      'An elite walks in with a name and up to two of the wave beside it. Kill the named one and the pack runs. A Hasted name rages instead.',
       'At camp, Wear upgrades puts on anything in the bag that beats what you have.',
       'A death changes the wood: the Mire slows, Ember burns, Frost chills, Storm sparks, Blight poisons.',
       'At camp, Dust renders an item, or a Whetstone pushes one number up a step.',

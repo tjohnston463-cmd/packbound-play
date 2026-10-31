@@ -125,8 +125,80 @@
     return e;
   }
 
+  var PACK_A = ['Gore', 'Ash', 'Mire', 'Bone', 'Rot', 'Cinder', 'Hollow', 'Grim', 'Vile', 'Dusk', 'Briar', 'Fen'];
+  var PACK_B = ['hide', 'maw', 'spine', 'warden', 'howl', 'brand', 'reek', 'tusk', 'veil', 'crown', 'heart', 'fang'];
+
+  // A stable name. No random stream, so the wave's rolls stay where they were.
+  function packName(sp, n) {
+    var mod = (sp.elite && sp.elite[0]) || 'marked';
+    var s = (sp.enemy || '') + ':' + mod + ':' + (n || 0), h = 0, i;
+    for (i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
+    var modName = mod.charAt(0).toUpperCase() + mod.slice(1);
+    return PACK_A[h % PACK_A.length] + PACK_B[(h >>> 8) % PACK_B.length] + ' the ' + modName;
+  }
+
+  // The next plain bodies in this wave become the champion's pack. They are not new spawns.
+  function claimRetinue(list, from, lead, room) {
+    var out = [], i, cap = Math.min(2, room || 0);
+    for (i = from; i < list.length && out.length < cap; i++) {
+      var sp = list[i];
+      if (sp.skip || sp.boss || sp.champion || (sp.elite && sp.elite.length)) continue;
+      sp.skip = true;
+      sp.retinue = true;
+      sp.delay = lead.delay;
+      sp.fromGate = false;
+      out.push(sp);
+    }
+    return out;
+  }
+
+  // Stand on the champion's edge, one step to either side, so the pack comes out of one hole.
+  function beside(world, lead, slot) {
+    var along = (slot === 0 ? -36 : 36), W = world.width, H = world.height;
+    var top = lead.y, bot = H - lead.y, left = lead.x, right = W - lead.x;
+    var edge = 0, best = top;
+    if (bot < best) { best = bot; edge = 2; }
+    if (left < best) { best = left; edge = 3; }
+    if (right < best) { edge = 1; }
+    if (edge === 0 || edge === 2) return { x: PB.M.clamp(lead.x + along, 36, W - 36), y: lead.y };
+    return { x: lead.x, y: PB.M.clamp(lead.y + along, 36, H - 36) };
+  }
+
+  function announcePack(world, sp, lead) {
+    if (!lead || !world.dir || sp.boss || !(sp.elite && sp.elite.length) || sp.retinue) return;
+    var room = PB.Waves.CONCURRENT_CAP - world.counts.enemy;
+    var mates = claimRetinue(world.dir.list, world.dir.idx, sp, room);
+    lead.packLead = true;
+    lead.packName = packName(sp, world.dir.idx);
+    var m, spot, minion;
+    for (m = 0; m < mates.length; m++) {
+      spot = beside(world, lead, m);
+      minion = spawnEnemy(world, mates[m], spot.x, spot.y);
+      if (!minion) continue;
+      minion.retinue = lead.id;
+      minion.packName = lead.packName;
+    }
+    PB.Events.emit(world.events, 'bloodpack', { id: lead.id, name: lead.packName, x: lead.x, y: lead.y, n: mates.length });
+  }
+
   // Splitting elites break into 3 half-size, plain copies (World.kill, enemies).
+  // A named champion's death breaks the pack: they run, unless the champion was Hasted, and then they rage.
   function onEnemyDeath(world, e) {
+    if (e.packLead) {
+      var mad = !!(e.elite && e.elite.indexOf('hasted') >= 0), broke = 0, i, o;
+      for (i = 0; i < world.ents.length; i++) {
+        o = world.ents[i];
+        if (o.dead || o.retinue !== e.id || o.enraged) continue;
+        broke++;
+        if (mad) {
+          o.enraged = true;
+          o.dmg = [o.dmg[0] * 1.35, o.dmg[1] * 1.35];
+          o.speed *= 1.25;
+        } else o.fleeT = Math.max(o.fleeT || 0, 2.6);
+      }
+      e.packLead = false;
+      PB.Events.emit(world.events, 'pack-break', { x: e.x, y: e.y, name: e.packName, mad: mad, n: broke });
+    }
     if (!e.elite || e.elite.indexOf('splitting') < 0 || e.splitFrom) return;
     for (var i = 0; i < SPLIT_N; i++) {
       var a = i / SPLIT_N * PB.M.TAU, hp = Math.round(e.maxHp / 2);
@@ -207,9 +279,11 @@
     if (d.state === 'lull') { if (d.t >= LULL - EPS) startWave(world, d.wave + 1); return; }
     while (d.idx < d.list.length && d.list[d.idx].delay <= d.t + EPS && world.counts.enemy < PB.Waves.CONCURRENT_CAP) {
       var sp = d.list[d.idx++];
+      if (sp.skip) continue;
       if (!sp.pinned && !sp.boss) sp.fromGate = true;
       var at = sp.pinned ? { x: sp.x, y: sp.y } : edgePoint(world, sp.edge, world.rng.spawn);
-      spawnEnemy(world, sp, at.x, at.y);
+      var spawned = spawnEnemy(world, sp, at.x, at.y);
+      if (spawned) announcePack(world, sp, spawned);
     }
     if (d.bossId) {
       var b = world.byId[d.bossId];
@@ -239,5 +313,5 @@
 
   PB.Director = { start: start, startWave: startWave, update: update, spawnEnemy: spawnEnemy, spawnList: spawnList, onEnemyDeath: onEnemyDeath,
                   placeObstacles: placeObstacles, status: status, huntLine: huntLine, LULL: LULL, LANE: LANE, EMERGE: EMERGE, ELITE_HP: ELITE_HP, ELITE_DMG: ELITE_DMG,
-                  FARM_EVERY: FARM_EVERY, FARM_N: FARM_N, packGate: packGate, PACK_ALONG: PACK_ALONG };
+                  FARM_EVERY: FARM_EVERY, FARM_N: FARM_N, packGate: packGate, PACK_ALONG: PACK_ALONG, packName: packName };
 })(globalThis.PB = globalThis.PB || {});

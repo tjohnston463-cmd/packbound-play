@@ -289,6 +289,8 @@
     else if (e.type === 'mimic') toast('The Unmaker copies ' + e.name);
     else if (e.type === 'phase') toast((PB.BOSSES[e.unit] || {}).name + ' grows desperate');
     else if (e.type === 'terror') toast('The Terror has ' + e.name + '. It hits harder. It pays better.');
+    else if (e.type === 'bloodpack') toast(e.n ? e.name + ' walks in with a pack of ' + e.n : e.name + ' walks in');
+    else if (e.type === 'pack-break') toast(e.mad ? e.name + ' falls. The pack rages.' : e.name + ' falls. The pack runs.');
     else if (e.type === 'wave') {
       var quarryName = w.dir ? ((PB.ENEMIES[PB.Waves.quarry(w.dir.zone, w.dir.moon)] || {}).name || '') : '';
       var terror = w.dir && w.dir.terror;

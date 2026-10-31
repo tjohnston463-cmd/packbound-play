@@ -380,6 +380,17 @@
       g.font = '11px ' + SERIF; g.textAlign = 'center'; g.fillStyle = '#e8a040';
       g.fillText('champion', e.x, top - (quarry ? 30 : 16)); g.textAlign = 'left';
     }
+    if (e.packLead && e.packName) {
+      g.font = 'bold 13px ' + SERIF; g.textAlign = 'center'; g.lineWidth = 3; g.strokeStyle = 'rgba(10,6,4,0.9)'; g.fillStyle = '#ffd678';
+      var ny = top - (quarry || e.champion ? 46 : 28);
+      g.strokeText(e.packName, e.x, ny); g.fillText(e.packName, e.x, ny); g.textAlign = 'left';
+    } else if (e.retinue) {
+      ring(g, e.x, e.y + e.r * 0.2, e.r + 4, e.enraged ? '#ff5a3a' : 'rgba(255,214,120,0.7)', 1.5, [2, 3]);
+    }
+    if (e.enraged) {
+      g.font = '11px ' + SERIF; g.textAlign = 'center'; g.fillStyle = '#ff5a3a';
+      g.fillText('enraged', e.x, top - 14); g.textAlign = 'left';
+    }
     if (e.ward && PB.Wards) {
       var cracked = world && e.wardBreak > world.time;
       ring(g, e.x, e.y + e.r * 0.2, e.r + 14, cracked ? '#9a9a9a' : (PB.Wards.COLOR[e.ward] || '#fff'), 2, cracked ? [2, 4] : [6, 3]);
