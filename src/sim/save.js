@@ -17,7 +17,7 @@
       roster: [], inventory: [], equipped: { staff: null, mask: null, pelt: null, talisman: null, charm1: null, charm2: null },
       currency: { moonstones: 0, dust: 0 },
       belt: { life: 2, spirit: 2, moon: 0 },
-      runes: PB.Runes.emptyPouch(), cubeRolls: 0, gambleRolls: 0,
+      runes: PB.Runes.emptyPouch(), board: [], tomes: 0, cubeRolls: 0, gambleRolls: 0,
       progress: { unlockedZone: 0, cleared: [], moon: 0, bestMoon: 0, moonCleared: {}, terrorCall: null }, // moonCleared: Moon tier -> zones cleared at it. terrorCall moves the Terror for one Moon.
       echoes: [],
       codex: { fusions: {}, uniques: {}, enemies: {} },
@@ -108,6 +108,12 @@
       if (!Array.isArray(it.sockets) || it.sockets.length > cap) return 'item-sockets';
       if (!it.sockets.every(function (id) { return !!PB.RUNE_BY_ID[id]; })) return 'item-sockets';
     }
+    if (base.slot === 'board') {
+      if (it.span !== base.span) return 'item-span';
+      if (base.span === 2) {
+        if (typeof it.skill !== 'string' || !PB.SKILL_BY_ID[it.skill]) return 'item-skill';
+      } else if (it.skill) return 'item-skill';
+    }
     return null;
   }
 
@@ -130,6 +136,18 @@
     var ids = {}, uids = {}, err, i;
     for (i = 0; i < s.roster.length; i++) if ((err = validateInd(s.roster[i], ids))) return err;
     for (i = 0; i < s.inventory.length; i++) if ((err = validateItem(s.inventory[i], uids))) return err;
+    if (!Array.isArray(s.board) || s.board.length > (PB.Charms ? PB.Charms.SLOTS : 8)) return 'board';
+    var cells = {};
+    for (i = 0; i < s.board.length; i++) {
+      if ((err = validateItem(s.board[i], uids))) return err;
+      var bit = s.board[i];
+      if (bit.slot !== 'board' || !isInt(bit.at, 0, 7) || bit.at + bit.span > 8) return 'board';
+      for (var c = 0; c < bit.span; c++) {
+        if (cells[bit.at + c]) return 'board';
+        cells[bit.at + c] = true;
+      }
+    }
+    if (!isInt(s.tomes, 0, PB.Charms ? PB.Charms.TOME_CAP : 20)) return 'tomes';
     for (i = 0; i < s.echoes.length; i++) if ((err = validateEcho(s.echoes[i], ids))) return err;
     if (!isObj(s.equipped)) return 'equipped';
     var used = {};
@@ -190,7 +208,7 @@
     if (err) return { ok: false, error: err };
     // Counters must stay ahead of every stored id so new individuals and items never collide.
     s.roster.concat(s.echoes).forEach(function (r) { if (r.id >= s.nextIndId) s.nextIndId = r.id + 1; });
-    s.inventory.forEach(function (it) { if (it.uid >= s.nextItemId) s.nextItemId = it.uid + 1; });
+    s.inventory.concat(s.board || []).forEach(function (it) { if (it.uid >= s.nextItemId) s.nextItemId = it.uid + 1; });
     return { ok: true, save: s };
   }
 

@@ -90,6 +90,7 @@
       pick = null;
       for (i = 0; i < save.inventory.length; i++) {
         var it = save.inventory[i];
+        if (it.slot === 'board') continue;
         if (slotOf(save, it.uid)) continue;
         if (!PB.Loot.isUpgrade(save, it)) continue;
         if (!pick || PB.Loot.score(it) > PB.Loot.score(pick)) pick = it;
@@ -117,7 +118,8 @@
     var rng = new PB.Rng(PB.deriveSeed(save.seed >>> 0, 'gamble:' + save.gambleRolls));
     var band = gambleBand(save), ilvl = band[0] + rng.int(0, band[1] - band[0]);
     var rarity = rng.weighted(['magic', 'rare', 'set', 'unique'], function (k) { return GAMBLE_W[k]; });
-    var item = PB.Loot.rollItem(rng, ilvl, rarity, save);
+    var item = (PB.Charms && rng.chance(0.14)) ? PB.Charms.roll(rng, ilvl, save, ilvl >= 6 && rng.chance(0.4)) : PB.Loot.rollItem(rng, ilvl, rarity, save);
+    if (item.unread) item.unread = false; // the hearth is where you buy it
     if (PB.Loot.isUpgrade(save, item)) item.upgrade = true;
     save.inventory.push(item);
     save.currency.dust -= GAMBLE_COST;

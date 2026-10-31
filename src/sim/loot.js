@@ -50,8 +50,8 @@
 
   function slotFamily(slot) { return slot === 'charm1' || slot === 'charm2' ? 'charm' : slot; }
 
-  function rollAffixes(rng, base, rarity, ilvl) {
-    var def = rarityDef(rarity), n = rng.int(def.affixes[0], def.affixes[1]);
+  function rollAffixes(rng, base, rarity, ilvl, count) {
+    var def = rarityDef(rarity), n = (count && count.length === 2) ? rng.int(count[0], count[1]) : rng.int(def.affixes[0], def.affixes[1]);
     var out = [], groups = {}, behaviors = 0;
     for (var tries = 0; out.length < n && tries < 40; tries++) {
       var wantBehavior = behaviors < def.maxBehavior && (out.length === 0 || rng.chance(0.4));
@@ -94,8 +94,13 @@
       }
       rarity = 'rare';
     }
-    var bases = PB.ITEM_BASES.filter(function (b) { return b.ilvl <= ilvl && (!slot || b.slot === slot); });
-    if (!bases.length) bases = PB.ITEM_BASES.filter(function (b) { return !slot || b.slot === slot; });
+    // Board charms are rolled by Charms, never by a normal drop, a gamble fallback, or a failed set.
+    var bases = PB.ITEM_BASES.filter(function (b) {
+      if (b.ilvl > ilvl) return false;
+      if (slot) return b.slot === slot;
+      return b.slot !== 'board';
+    });
+    if (!bases.length) bases = PB.ITEM_BASES.filter(function (b) { return slot ? b.slot === slot : b.slot !== 'board'; });
     var base = rng.pick(bases);
     var affixes = rollAffixes(rng, base, rarity, ilvl);
     var name = base.name;
@@ -113,7 +118,7 @@
   function aggregate(items) {
     var stats = {}, behaviors = {};
     items.forEach(function (it) {
-      if (!it) return;
+      if (!it || it.unread) return;
       var base = PB.BASE_BY_ID[it.base];
       for (var k in base.implicit) stats[k] = (stats[k] || 0) + base.implicit[k];
       it.affixes.forEach(function (x) {
@@ -137,7 +142,17 @@
     if (word) lines.push(word.name + ': ' + word.text);
     else if (item.sockets && item.sockets.length) lines.push('Sockets: ' + item.sockets.map(function (id) { return PB.RUNE_BY_ID[id].name; }).join(', '));
     if (item.set && PB.SET_PIECE_BY_ID[item.set]) lines.push(PB.SET_BY_ID[PB.SET_PIECE_BY_ID[item.set].setId].name + ': ' + PB.SET_PIECE_BY_ID[item.set].text);
+    if (item.skill && PB.SKILL_BY_ID[item.skill]) lines.push('+1 to ' + PB.SKILL_BY_ID[item.skill].name + '. It counts once you have a point in it.');
     return lines;
+  }
+
+  // What the beam and the toast may say. An unread drop keeps its real name in the save.
+  function publicName(item) {
+    if (!item) return '';
+    if (!item.unread) return item.name;
+    if (item.slot === 'board') return 'Unread ' + ((item.span || 1) === 2 ? 'Moon Charm' : 'Grove Charm');
+    var r = item.rarity || 'magic';
+    return 'Unread ' + r.charAt(0).toUpperCase() + r.slice(1);
   }
 
   function score(item) {
@@ -155,6 +170,7 @@
       var piece = PB.SET_PIECE_BY_ID[item.set];
       for (k in piece.stats) n += piece.stats[k];
     }
+    if (item.skill) n += 35;
     return n;
   }
 
@@ -167,7 +183,8 @@
 
   // Empty hands count as an upgrade. A charm upgrades the weaker charm, or an empty charm slot.
   function isUpgrade(save, item) {
-    if (!save || !item) return false;
+    if (!save || !item || item.unread) return false;
+    if (item.slot === 'board') return PB.Charms ? PB.Charms.isUpgrade(save, item) : false;
     var mine = score(item);
     if (item.slot === 'charm') {
       var a = worn(save, 'charm1'), b = worn(save, 'charm2');
@@ -178,5 +195,5 @@
     return !have || mine > score(have);
   }
 
-  PB.Loot = { rollRarity: rollRarity, rollItem: rollItem, rollAffixes: rollAffixes, rareName: rareName, aggregate: aggregate, describe: describe, slotFamily: slotFamily, score: score, isUpgrade: isUpgrade };
+  PB.Loot = { rollRarity: rollRarity, rollItem: rollItem, rollAffixes: rollAffixes, rareName: rareName, aggregate: aggregate, describe: describe, publicName: publicName, slotFamily: slotFamily, score: score, isUpgrade: isUpgrade };
 })(globalThis.PB = globalThis.PB || {});

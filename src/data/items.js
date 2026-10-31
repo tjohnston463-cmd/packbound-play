@@ -20,7 +20,10 @@
     { id: 'moontotem',   slot: 'talisman', name: 'Moon Totem',      ilvl: 11, implicit: { packHp: 12 } },
     { id: 'fangcharm',   slot: 'charm',    name: 'Fang Charm',      ilvl: 1,  implicit: { wolfDmg: 5 } },
     { id: 'feathercharm',slot: 'charm',    name: 'Feather Charm',   ilvl: 1,  implicit: { ravenDmg: 5 } },
-    { id: 'seedcharm',   slot: 'charm',    name: 'Seed Charm',      ilvl: 1,  implicit: { vineDmg: 5 } }
+    { id: 'seedcharm',   slot: 'charm',    name: 'Seed Charm',      ilvl: 1,  implicit: { vineDmg: 5 } },
+    // The board, not the two worn charm slots. span is how many cells it takes.
+    { id: 'grovecharm',  slot: 'board',    name: 'Grove Charm',     ilvl: 1,  span: 1, implicit: {} },
+    { id: 'mooncharm',   slot: 'board',    name: 'Moon Charm',      ilvl: 6,  span: 2, implicit: {} }
   ];
   PB.UNIQUES = [
     { id: 'fenrir',     base: 'fangcharm',   name: "Fenrir's Collar",          ilvl: 6,  behaviors: { fenrir: 1 },   text: 'While Frenzy is active, all wolves merge into one giant wolf with their combined life and damage.' },

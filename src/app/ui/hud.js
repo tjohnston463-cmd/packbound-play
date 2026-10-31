@@ -277,6 +277,8 @@
     if (bite) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, bite, 12, 90, UI.font(12), '#ffb070'); g.restore(); }
     var setLine = world.save && PB.Sets ? PB.Sets.line(world.save) : '';
     if (setLine) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, setLine, 12, 108, UI.font(12), '#8fe07a'); g.restore(); }
+    var charms = world.save && PB.Charms ? PB.Charms.hudLine(world) : '';
+    if (charms) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, charms, 12, 162, UI.font(12), '#e2c56a'); g.restore(); }
     var wards = world.mods && PB.Wards ? PB.Wards.hudLine(world) : '';
     if (wards) {
       var lowWard = false, wi;

@@ -210,6 +210,10 @@
       case 'far': return 'Walk to the shrine';
       case 'no-shrine': return 'No shrine here';
       case 'camp': return 'Only at camp (Hearthgrove)';
+      case 'fit': return 'No open stretch on the charm board';
+      case 'bag': return 'The bag is full';
+      case 'tome': return 'No tome. Elites drop them. Camp reads for free';
+      case 'none': return 'Nothing left unread';
       default: return String(r.reason);
     }
   }

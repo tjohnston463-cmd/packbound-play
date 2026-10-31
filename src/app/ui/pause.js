@@ -13,6 +13,7 @@
     interact: 'Interact: open the Fusion Altar at a Fusion Shrine',
     labels: 'Show every loot name on screen (hold)',
     inventory: 'Inventory', skills: 'Skill tree', pack: 'Pack (roster, evolve, scars, diet)',
+    read: 'Read the best unread item in the bag. A tome drops from elites and bosses. Camp reads the bag for free',
     pause: 'Pause and this help (Esc also closes a menu)', mute: 'Mute'
   };
   var KEY_CMDS = { howl: 'howl', rally: 'rally', frenzy: 'frenzy', encircle: 'encircle', heel: 'heel' };
@@ -78,6 +79,7 @@
       'Your own hits can crush a tough body, strike twice, and return life or Spirit. Zeal, the claw, the spin, the javelin, the spear and the fireball each feed one of those. Gear can too.',
       PB.Wards ? PB.Wards.HELP : 'The wood bites in an element. Gear wards you.',
       'The belt holds life flasks, spirit flasks and Moonflasks. They drop in the wood and do not fill the bag. A boss always leaves a Moonflask. Camp sells them for Dust. A heavy hit staggers your step until you drink.',
+      PB.Charms ? PB.Charms.HELP : 'Magic and better drops unread. Charms on the board count in the fight.',
       'When the last summon of a type falls, it waits in the Den.'
     ];
     PB.SYNERGY_RULES.forEach(function (r) { out.push(r.text); });
@@ -152,7 +154,7 @@
     calling.order.forEach(function (t, i) { rows.push(['summon' + (i + 1), 'Summon ' + PB.SUMMONS[t].name]); });
     for (var a in KEY_CMDS) rows.push([a, cmdName(KEY_CMDS[a])]);
     return rows.concat([['bound', 'Bound (dodge)'], ['sipLife', 'Life flask'], ['sipSpirit', 'Spirit flask'], ['sipMoon', 'Moonflask'], ['skinwalk', 'Skinwalk'], ['hunt', 'Wild Hunt'], ['interact', 'Interact'],
-      ['inventory', 'Inventory'], ['skills', 'Skill tree'], ['pack', 'Pack'], ['pause', 'Pause (Esc always works)'], ['mute', 'Mute'], ['labels', 'Show loot names']]);
+      ['inventory', 'Inventory'], ['skills', 'Skill tree'], ['pack', 'Pack'], ['read', 'Read'], ['pause', 'Pause (Esc always works)'], ['mute', 'Mute'], ['labels', 'Show loot names']]);
   }
   function stopListening() { if (S.listen) { S.listen = null; PB.Input.listen(null); } }
   function pick(action, label) {

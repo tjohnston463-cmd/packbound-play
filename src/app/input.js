@@ -11,13 +11,13 @@
     KeyQ: 'howl', KeyR: 'rally', KeyF: 'frenzy', KeyC: 'encircle', KeyG: 'heel',
     KeyZ: 'sipLife', KeyX: 'sipSpirit', KeyB: 'sipMoon',
     Space: 'bound', Tab: 'skinwalk', KeyV: 'hunt', KeyT: 'interact',
-    KeyI: 'inventory', KeyK: 'skills', KeyJ: 'pack', Escape: 'pause', KeyP: 'pause', KeyM: 'mute',
+    KeyI: 'inventory', KeyK: 'skills', KeyJ: 'pack', KeyN: 'read', Escape: 'pause', KeyP: 'pause', KeyM: 'mute',
     AltLeft: 'labels', AltRight: 'labels'
   };
   var DEFAULTS = Object.assign({}, KEYMAP), DEFAULTS_ACTIONS = {}, STORE = 'packbound.keys.v1', storage = null, capture = null;
   for (var dc in DEFAULTS) DEFAULTS_ACTIONS[DEFAULTS[dc]] = true;
   // Actions added after someone saved a key map. An older map keeps its binds and gains these on their default keys.
-  var GRAFT = { sipLife: 1, sipSpirit: 1, sipMoon: 1 };
+  var GRAFT = { sipLife: 1, sipSpirit: 1, sipMoon: 1, read: 1 };
   // Esc always pauses and closes menus, Shift is the dismiss modifier, and Ctrl/Meta belong to the browser. Of the
   // mouse, the middle and two side buttons (codes Mouse1, Mouse3, Mouse4) bind like keys; left and right stay
   // Thornlash and the pack commands.

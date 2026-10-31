@@ -33,12 +33,16 @@
   // Free respec at camp (decision: experimenting is the fun).
   function respec(player) { player.skills = {}; }
 
-  function aggregate(alloc) {
+  // bonus is {skillId: extraRanks} from the charm board. A skill with no point of your own stays off.
+  // Synergies below stay on the points you spent, so a charm does not feed them twice.
+  function aggregate(alloc, bonus) {
     var stats = {}, behaviors = {};
+    bonus = bonus || {};
     Object.keys(alloc).sort().forEach(function (id) {
       var node = PB.SKILL_BY_ID[id];
-      if (!node || !alloc[id]) return;
-      var eff = node.effect(alloc[id]);
+      var hard = alloc[id] || 0;
+      if (!node || !hard) return;
+      var eff = node.effect(hard + (bonus[id] || 0));
       for (var k in eff) {
         if (k === 'behaviors') { for (var b in eff.behaviors) behaviors[b] = eff.behaviors[b]; }
         else stats[k] = (stats[k] || 0) + eff[k];

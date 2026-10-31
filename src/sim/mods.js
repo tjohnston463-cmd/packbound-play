@@ -17,7 +17,8 @@
   function build(save) {
     var stats = {}, behaviors = {};
     if (!save) return { stats: stats, behaviors: behaviors };
-    [PB.Loot.aggregate(equipped(save)), PB.Skills.aggregate(save.player.skills || {})].forEach(function (src) {
+    var carried = (save.board || []).filter(function (it) { return it && !it.unread; });
+    [PB.Loot.aggregate(equipped(save).concat(carried)), PB.Skills.aggregate(save.player.skills || {}, PB.Charms ? PB.Charms.bonus(save) : {})].forEach(function (src) {
       var k;
       for (k in src.stats) stats[k] = (stats[k] || 0) + src.stats[k];
       for (k in src.behaviors) behaviors[k] = Math.max(behaviors[k] || 0, src.behaviors[k]);

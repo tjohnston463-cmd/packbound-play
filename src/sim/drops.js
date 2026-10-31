@@ -18,9 +18,9 @@
 
   function place(world, x, y, what) {
     var d = { id: world.nextDrop = (world.nextDrop || 0) + 1, x: PB.M.clamp(x, 10, world.width - 10), y: PB.M.clamp(y, 10, world.height - 10),
-              item: what.item || null, moonstones: what.moonstones || 0, rune: what.rune || null, flask: what.flask || null, warned: false, carrier: 0 };
+              item: what.item || null, moonstones: what.moonstones || 0, rune: what.rune || null, flask: what.flask || null, tome: what.tome || 0, warned: false, carrier: 0 };
     world.drops.push(d);
-    PB.Events.emit(world.events, 'drop', { id: d.id, x: d.x, y: d.y, rarity: d.flask ? 'flask-' + d.flask : d.rune ? 'rune' : d.item ? d.item.rarity : 'moonstone', rune: d.rune, flask: d.flask });
+    PB.Events.emit(world.events, 'drop', { id: d.id, x: d.x, y: d.y, rarity: d.tome ? 'tome' : d.flask ? 'flask-' + d.flask : d.rune ? 'rune' : d.item ? d.item.rarity : 'moonstone', rune: d.rune, flask: d.flask, tome: d.tome || 0 });
     return d;
   }
 
@@ -77,7 +77,8 @@
     if (!o.boss && n === 0 && world.dir && (world.dir.moon || 0) >= 1 && PB.Waves.isQuarry(world.dir, def.type) && rng.chance(0.35)) n = 1;
     for (i = 0; i < n; i++) {
       var item = PB.Loot.rollItem(rng, ilvl, PB.Loot.rollRarity(rng, o), save), a = n > 1 ? i / n * PB.M.TAU : 0;
-      if (PB.Loot.isUpgrade(save, item)) item.upgrade = true;
+      if (item.rarity !== 'common') item.unread = true;
+      if (!item.unread && PB.Loot.isUpgrade(save, item)) item.upgrade = true;
       place(world, def.x + (n > 1 ? Math.cos(a) * SPREAD : 0), def.y + (n > 1 ? Math.sin(a) * SPREAD : 0), { item: item });
     }
     if (o.elite && !o.boss && rng.chance(ELITE_MOON)) place(world, def.x + 14, def.y + 10, { moonstones: 1 });
@@ -87,6 +88,7 @@
       place(world, def.x - 16, def.y - 8, { rune: PB.Runes.roll(rng, ilvl) });
     }
     if (PB.Belt) PB.Belt.onKill(world, def, o);
+    if (PB.Charms) PB.Charms.onKill(world, def, o, ilvl);
   }
 
   // Into the bag (or the purse). Returns false when the bag is full.
@@ -94,6 +96,13 @@
     var save = world.save;
     if (d.flask) {
       if (!PB.Belt.take(world, d)) return false;
+      world.drops.splice(world.drops.indexOf(d), 1);
+      return true;
+    }
+    if (d.tome) {
+      if ((save.tomes || 0) >= (PB.Charms ? PB.Charms.TOME_CAP : 20)) return false;
+      save.tomes = (save.tomes || 0) + 1;
+      PB.Events.emit(world.events, 'pickup', { id: d.id, tome: 1, name: 'Tome', rarity: 'tome', x: d.x, y: d.y });
       world.drops.splice(world.drops.indexOf(d), 1);
       return true;
     }
@@ -111,8 +120,8 @@
     } else {
       if (bagCount(save) >= BAG_MAX) return false;
       save.inventory.push(d.item);
-      if (d.item.unique) save.codex.uniques[d.item.unique] = true;
-      PB.Events.emit(world.events, 'pickup', { id: d.id, uid: d.item.uid, rarity: d.item.rarity, name: d.item.name, upgrade: !!d.item.upgrade, x: d.x, y: d.y });
+      if (d.item.unique && !d.item.unread) save.codex.uniques[d.item.unique] = true;
+      PB.Events.emit(world.events, 'pickup', { id: d.id, uid: d.item.uid, rarity: d.item.rarity, name: PB.Loot.publicName(d.item), unread: !!d.item.unread, upgrade: !!d.item.upgrade && !d.item.unread, x: d.x, y: d.y });
     }
     world.drops.splice(world.drops.indexOf(d), 1);
     return true;
@@ -141,7 +150,7 @@
       if (d.discarded && !d.away) continue; // just dropped: wait until the druid has left it
       if (d.item && !d.discarded && d.item.rarity === 'common' && !PB.Loot.isUpgrade(world.save, d.item)) continue; // a worse common stays where it fell
       if (take(world, d)) continue;
-      if (!d.warned) { d.warned = true; PB.Events.emit(world.events, 'pickup-fail', { id: d.id, reason: d.flask ? 'belt' : 'full', x: d.x, y: d.y }); }
+      if (!d.warned) { d.warned = true; PB.Events.emit(world.events, 'pickup-fail', { id: d.id, reason: d.flask ? 'belt' : d.tome ? 'tome' : 'full', x: d.x, y: d.y }); }
     }
   }
 

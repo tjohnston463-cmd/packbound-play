@@ -96,7 +96,37 @@
   }
 
   // Leave the field for Hearthgrove (Abandon Hunt keeps loot, XP and roster). A run's positions are never saved.
+  function readPressed() {
+    if (!G.save || !PB.Charms || G.screen === 'title' || G.screen === 'boot') return false;
+    var r = PB.Charms.readOne(G.save), i;
+    if (!r.ok) {
+      toast(r.reason === 'tome' ? 'No tome. Elites drop them. Camp reads for free.' : 'Nothing left unread.');
+      return true;
+    }
+    if (G.run && G.run.loot) {
+      for (i = 0; i < G.run.loot.length; i++) if (G.run.loot[i].uid === r.item.uid) G.run.loot[i].name = r.item.name;
+    }
+    toast((r.item.upgrade ? 'Better: ' : '') + r.name);
+    afterSaveChange();
+    return true;
+  }
+
+  // The hearth names what you carried. Victory does the same, quietly, so the loot list tells the truth.
+  function readCarried(toastIt) {
+    if (!G.save || !PB.Charms) return 0;
+    var n = PB.Charms.readAll(G.save), i;
+    if (G.run && G.run.loot) {
+      for (i = 0; i < G.run.loot.length; i++) {
+        var it = PB.Charms.find(G.save, G.run.loot[i].uid);
+        if (it) G.run.loot[i].name = it.name;
+      }
+    }
+    if (toastIt && n) toast('The hearth names ' + n + '.');
+    return n;
+  }
+
   function toCamp() {
+    readCarried(true);
     persist('camp');
     G.world = null; G.stack = []; G.endKind = null;
     if (PB.Input.releaseAll) PB.Input.releaseAll();
@@ -109,7 +139,7 @@
   function cleared() { return !!(G.world && G.endKind === 'victory' && G.endT <= 0); }
   function leaveCleared() {
     if (!cleared()) return;
-    lootShower(G.world); persist('victory');
+    lootShower(G.world); readCarried(false); persist('victory');
     G.stack = ['field']; setScreen('victory');
   }
 
@@ -273,7 +303,9 @@
       if (si && sc) { toast(si.name + ' earned the ' + sc.name + ' scar'); if (run) run.scars.push(si.name + ' earned ' + sc.name + ' (' + sc.text + ')'); }
     } else if (e.type === 'fusion') toast('Fused: ' + e.name + ' (' + fusionName(e.unit) + ')');
     else if (e.type === 'evolve') { var vi = w.inds[e.indId]; if (vi) toast(vi.name + ' evolved' + (e.name ? ' into a ' + e.name : '')); }
-    else if (e.type === 'pickup-fail') toast(e.reason === 'belt' ? 'The belt is full. Drink one, then come back.' : 'Inventory full (40): the drop stays on the ground');
+    else if (e.type === 'pickup-fail') toast(e.reason === 'belt' ? 'The belt is full. Drink one, then come back.' : e.reason === 'tome' ? 'You are carrying every tome you can. Read one.' : 'Inventory full (40): the drop stays on the ground');
+    else if (e.type === 'pickup' && e.tome) toast('Tome');
+    else if (e.type === 'pickup' && e.unread) toast(e.name);
     else if (e.type === 'pickup' && e.rune) toast(e.name);
     else if (e.type === 'pickup' && e.flask === 'moon') toast('Moonflask');
     else if (e.type === 'sip-fail' && e.reason === 'empty') toast('No ' + (e.kind === 'moon' ? 'Moonflask' : e.kind === 'life' ? 'life flask' : 'spirit flask') + ' on the belt.');
@@ -344,7 +376,7 @@
     if (G.endKind) {
       G.endT -= dt;
       if (G.endT > 0) return;
-      if (G.endKind === 'victory') { lootShower(w); open('victory'); } else open('gameover');
+      if (G.endKind === 'victory') { lootShower(w); readCarried(false); open('victory'); } else open('gameover');
       persist(G.endKind);
       return;
     }
@@ -373,6 +405,7 @@
       return true;
     }
     if (menuKey(code)) return true;
+    if (PB.Input.KEYMAP[code] === 'read' && readPressed()) return true;
     var def = screenDef(G.screen);
     return !!(def && def.key && def.key(code, G));
   }

@@ -53,18 +53,19 @@
       });
     });
     skills.forEach(function (n) {
-      var at = pos[n.id], rank = p.skills[n.id] || 0, v = verdict(p, n), r = { x: at.x - 28, y: at.y - 28, w: 56, h: 56 }, hot = UI.hover(r);
+      var at = pos[n.id], rank = p.skills[n.id] || 0, bonus = (PB.Charms && rank) ? (PB.Charms.bonus(G.save)[n.id] || 0) : 0, v = verdict(p, n), r = { x: at.x - 28, y: at.y - 28, w: 56, h: 56 }, hot = UI.hover(r);
       var key = n.tier === 4;
       if (v.ok) { g.shadowColor = 'rgba(255,214,120,0.9)'; g.shadowBlur = 16 + 6 * Math.sin(UI.t * 4); }
       g.fillStyle = rank ? 'rgba(90,60,24,0.98)' : v.ok ? 'rgba(40,46,30,0.98)' : 'rgba(20,22,20,0.98)';
       g.beginPath(); if (key) { g.moveTo(at.x, at.y - 30); g.lineTo(at.x + 30, at.y); g.lineTo(at.x, at.y + 30); g.lineTo(at.x - 30, at.y); g.closePath(); } else g.arc(at.x, at.y, 26, 0, Math.PI * 2);
       g.fill(); g.shadowBlur = 0; g.shadowColor = 'transparent';
       g.strokeStyle = rank >= n.max ? C.gold : rank ? C.ember : v.ok ? C.moss : 'rgba(120,120,120,0.5)'; g.lineWidth = hot ? 3 : 2; g.stroke();
-      UI.text(g, rank + '/' + n.max, at.x, at.y - 7, UI.font(13, true), rank ? C.gold : v.ok ? C.bone : C.faint, 'center');
+      UI.text(g, rank + (bonus ? '+' + bonus : '') + '/' + n.max, at.x, at.y - 7, UI.font(bonus ? 11 : 13, true), rank ? C.gold : v.ok ? C.bone : C.faint, 'center');
       for (var k = 0; k < n.max; k++) { g.fillStyle = k < rank ? C.gold : 'rgba(255,255,255,0.15)'; g.fillRect(at.x - n.max * 5 + k * 10 + 1, at.y + 30, 8, 4); }
       UI.text(g, n.name, at.x, at.y + 38, UI.font(12), v.ok || rank ? C.bone : C.dim, 'center');
       if (hot) {
-        var lines = [{ text: n.name + (key ? ' (Keystone)' : ''), color: C.gold }, { text: n.text }, { text: 'Rank ' + rank + ' / ' + n.max, color: C.dim }];
+        var lines = [{ text: n.name + (key ? ' (Keystone)' : ''), color: C.gold }, { text: n.text }, { text: 'Rank ' + rank + (bonus ? '+' + bonus : '') + ' / ' + n.max, color: C.dim }];
+        if (bonus) lines.push({ text: 'Charms add ' + bonus + '. The fight uses rank ' + (rank + bonus) + '.', color: C.gold });
         if (!v.ok && v.reason !== 'max') lines.push({ text: UI.why(v), color: C.red });
         else if (v.ok) lines.push({ text: 'Click to learn', color: C.green });
         UI.setTip(lines, at.x, at.y - 32);

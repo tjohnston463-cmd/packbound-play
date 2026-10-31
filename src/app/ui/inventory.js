@@ -23,6 +23,14 @@
   // Tooltip lines for one item.
   function itemLines(item, save) {
     var C = PB.UI.C, b = baseOf(item), u = uniqueOf(item), word = PB.Runes && PB.Runes.wordOn(item);
+    if (item.unread) {
+      var key = PB.Input && PB.Input.keyOf ? (PB.Input.keyOf('read') || 'N') : 'N';
+      return [
+        { text: PB.Loot.publicName(item), color: rarityColor(item.rarity) },
+        { text: 'Unread. The color is all you know.', color: C.dim },
+        { text: key + ' spends a tome. Camp reads everything.', color: C.dim }
+      ];
+    }
     var out = [{ text: word ? word.name : item.name, color: word ? '#e2b84a' : rarityColor(item.rarity) }];
     if (word) out.push({ text: item.name, color: rarityColor(item.rarity) });
     out.push({ text: (b ? b.name : item.base) + ' · ' + item.slot + ' · ' + item.rarity + ' · item level ' + item.ilvl, color: C.dim });
@@ -49,6 +57,16 @@
         out.push({ text: line, color: def.kind === 'behavior' ? C.green : C.blue });
       }
     });
+    if (item.skill && PB.SKILL_BY_ID[item.skill]) {
+      var sk = PB.SKILL_BY_ID[item.skill];
+      var hard = save && save.player && save.player.skills ? (save.player.skills[item.skill] || 0) : 0;
+      var clsOk = !save || !save.player || (sk.cls || 'druid') === (save.player.classId || 'druid');
+      var note = '+1 to ' + sk.name;
+      if (!clsOk) note += ' (another calling)';
+      else if (!hard) note += ' (take the skill first)';
+      else note += ' (the fight uses rank ' + (hard + (PB.Charms ? (PB.Charms.bonus(save)[item.skill] || 0) : 1)) + ')';
+      out.push({ text: note, color: C.gold });
+    }
     if (item.set && PB.Sets) {
       var prev = PB.Sets.preview(item, save);
       if (prev) prev.forEach(function (ln) { out.push({ text: ln.text, color: ln.on ? '#6dbe6a' : C.dim }); });
@@ -72,8 +90,15 @@
     else if (item.slot === 'pelt') { g.moveTo(cx - 14 * k, cy - 12 * k); g.lineTo(cx + 14 * k, cy - 12 * k); g.lineTo(cx + 10 * k, cy + 14 * k); g.lineTo(cx - 10 * k, cy + 14 * k); g.closePath(); g.stroke(); }
     else if (item.slot === 'talisman') { g.arc(cx, cy + 3 * k, 10 * k, 0, 6.29); g.stroke(); g.beginPath(); g.moveTo(cx - 8 * k, cy - 16 * k); g.lineTo(cx, cy - 7 * k); g.lineTo(cx + 8 * k, cy - 16 * k); g.stroke(); }
     else { g.moveTo(cx, cy - 13 * k); g.lineTo(cx + 9 * k, cy); g.lineTo(cx, cy + 13 * k); g.lineTo(cx - 9 * k, cy); g.closePath(); g.fill(); }
-    if (item.set || item.unique || (item.affixes && item.affixes.some(function (a) { return PB.AFFIX_BY_ID[a.id] && PB.AFFIX_BY_ID[a.id].kind === 'behavior'; }))) {
-      g.fillStyle = PB.UI.C.green; g.beginPath(); g.arc(x + size - 9, y + 9, 3.5, 0, 6.29); g.fill(); // it changes behavior
+    if (item.set || item.unique || item.skill || (item.affixes && item.affixes.some(function (a) { return PB.AFFIX_BY_ID[a.id] && PB.AFFIX_BY_ID[a.id].kind === 'behavior'; }))) {
+      g.fillStyle = PB.UI.C.green; g.beginPath(); g.arc(x + size - 9, y + 9, 3.5, 0, 6.29); g.fill(); // it changes the fight
+    }
+    if (item.unread) {
+      g.save();
+      g.fillStyle = 'rgba(0,0,0,0.7)'; g.fillRect(x + 4, y + size - 16, 14, 12);
+      g.fillStyle = '#ffe9a0'; g.font = 'bold 11px Palatino, serif'; g.textAlign = 'left';
+      g.fillText('?', x + 7, y + size - 6);
+      g.restore();
     }
   }
 
@@ -144,14 +169,26 @@
       if (hot2) {
         var lines = itemLines(it2, save), slot = compareSlot(save, it2), eq = slot && save.equipped[slot] != null ? PB.Camp.findItem(save, save.equipped[slot]) : null;
         if (eq) lines = lines.concat([{ text: '— equipped now —', color: C.dim }], itemLines(eq, save).map(function (l) { return { text: l.text, color: C.dim }; }));
-        lines.unshift({ text: PB.Loot.isUpgrade(save, it2) ? 'Better than what you have on' : 'Worse than what you have on', color: PB.Loot.isUpgrade(save, it2) ? C.green : C.dim });
-        var hint = inCamp ? (S.whet ? 'Click: Whetstone (' + (PB.Camp.WHET[it2.rarity] || 2) + ' Dust)' : S.anvil ? 'Click: Render (' + PB.Camp.DUST[it2.rarity] + ' Dust)' : 'Click: equip · Shift-click: Render') :
-          S.drop ? 'Click: drop it on the ground' : 'Click: equip · Shift-click: drop';
+        if (!it2.unread) {
+          var better = PB.Loot.isUpgrade(save, it2);
+          var verdict = it2.slot === 'board' ? (better ? 'The board wants this' : 'Not better than what the board carries') : (better ? 'Better than what you have on' : 'Worse than what you have on');
+          lines.unshift({ text: verdict, color: better ? C.green : C.dim });
+        }
+        var hint = it2.slot === 'board'
+          ? (inCamp ? (S.whet ? 'Click: Whetstone (' + (PB.Camp.WHET[it2.rarity] || 2) + ' Dust)' : S.anvil ? 'Click: Render (' + PB.Camp.DUST[it2.rarity] + ' Dust)' : 'Click: put it on the board · Shift-click: Render') : (S.drop ? 'Click: drop it on the ground' : 'Click: put it on the board · Shift-click: drop'))
+          : (inCamp ? (S.whet ? 'Click: Whetstone (' + (PB.Camp.WHET[it2.rarity] || 2) + ' Dust)' : S.anvil ? 'Click: Render (' + PB.Camp.DUST[it2.rarity] + ' Dust)' : 'Click: equip · Shift-click: Render') :
+          S.drop ? 'Click: drop it on the ground' : 'Click: equip · Shift-click: drop');
         lines.push({ text: hint, color: C.dim });
         UI.setTip(lines, cx + CELL / 2, cy - 4);
       }
       var c = UI.hotspot('inv-' + i, cell);
       if (!c) continue;
+      if (it2.slot === 'board' && !c.shift && !(inCamp && (S.anvil || S.whet)) && !(!inCamp && S.drop)) {
+        var pr = PB.Charms.place(save, it2.uid);
+        if (!pr.ok) UI.flashReason(UI.why(pr), cx + CELL / 2, cy - 6);
+        else { PB.Game.toast('On the board: ' + PB.Loot.publicName(it2)); PB.Game.afterSaveChange(); }
+        continue;
+      }
       if (!inCamp && (c.shift || S.drop)) drop(G, it2);
       else if (inCamp && S.whet && !c.shift) {
         var wr = PB.Camp.whet(save, it2.uid);
@@ -166,7 +203,35 @@
         if (!er.ok) UI.flashReason(UI.why(er), cx + CELL / 2, cy - 6);
       }
     }
+    drawBoard(g, G, gx, gy + ROWS * (CELL + 4) + 28);
     if (UI.button(g, 'inv-close', { x: LW / 2 - 80, y: PY + PH - 50, w: 160, h: 34 }, 'Close (' + PB.Input.keyOf('inventory') + ')', { tone: 'moss' })) PB.Game.close();
+  }
+
+  function drawBoard(g, G, gx, gy) {
+    var UI = PB.UI, C = UI.C, save = G.save;
+    if (!save.board) save.board = [];
+    var used = PB.Charms.SLOTS - PB.Charms.free(save);
+    UI.text(g, 'Charm board  ' + used + ' / ' + PB.Charms.SLOTS + '    Tomes ' + (save.tomes || 0), gx, gy, UI.font(14, true), C.gold);
+    UI.text(g, 'These count in the fight. A Moon Charm takes two cells.', gx, gy + 16, UI.font(12), C.dim);
+    var cells = PB.Charms.layout(save), byId = {}, CELLB = 50;
+    save.board.forEach(function (it) { byId[it.uid] = it; });
+    for (var i = 0; i < PB.Charms.SLOTS; i++) {
+      var cx = gx + i * (CELLB + 4), cy = gy + 28, cell = { x: cx, y: cy, w: CELLB, h: CELLB };
+      var uid = cells[i], it = uid ? byId[uid] : null, start = it && it.at === i, hot = UI.hover(cell);
+      g.fillStyle = hot ? 'rgba(50,60,46,0.95)' : 'rgba(18,22,18,0.95)'; g.fillRect(cx, cy, CELLB, CELLB);
+      g.strokeStyle = it ? rarityColor(it.rarity) : 'rgba(176,142,84,0.25)'; g.lineWidth = 1; g.strokeRect(cx + 0.5, cy + 0.5, CELLB - 1, CELLB - 1);
+      if (start) icon(g, it, cx, cy, CELLB);
+      else if (it) UI.text(g, '·', cx + CELLB / 2, cy + 16, UI.font(16), rarityColor(it.rarity), 'center');
+      if (hot && it) {
+        var lines = itemLines(it, save).concat([{ text: 'Click to take it off the board', color: C.dim }]);
+        UI.setTip(lines, cx + CELLB / 2, cy - 4);
+      }
+      if (UI.hotspot('board-' + i, cell) && it) {
+        var tr = PB.Charms.takeOff(save, it.uid);
+        if (!tr.ok) UI.flashReason(UI.why(tr), cx + CELLB / 2, cy - 6);
+        else { PB.Game.toast('Back in the bag: ' + PB.Loot.publicName(it)); PB.Game.afterSaveChange(); }
+      }
+    }
   }
 
   PB.Screens = PB.Screens || {};
