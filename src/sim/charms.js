@@ -140,7 +140,7 @@
   }
 
   function readAll(save) {
-    var list = unreadList(save), i;
+    var list = unreadList(save).concat((save.stash || []).filter(function (it) { return it && it.unread; })), i;
     for (i = 0; i < list.length; i++) reveal(save, list[i]);
     return list.length;
   }

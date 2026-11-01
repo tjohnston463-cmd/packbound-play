@@ -261,6 +261,7 @@
         case 'gale': case 'thrall': return playAt('maul', ev.x);
         case 'thrall-break': case 'mimic': return playAt('linkcut', ev.x);
         case 'victory': return playAt('evolve', undefined);
+        case 'hearth-open': return playAt('evolve', ev.x);
         case 'drop': return playAt(ev.rarity === 'moonstone' ? 'loot_magic' : ev.rarity === 'rune' ? 'loot_rune' : (ev.rarity && ev.rarity.indexOf('flask') === 0) ? 'loot_flask' : 'loot_' + ev.rarity, ev.x);
         case 'pickup': return playAt(ev.flask ? 'loot_flask' : 'pickup', ev.x);
         case 'sip': return playAt('sip', ev.x);

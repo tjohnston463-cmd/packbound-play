@@ -17,7 +17,7 @@
       roster: [], inventory: [], equipped: { staff: null, mask: null, pelt: null, talisman: null, charm1: null, charm2: null },
       currency: { moonstones: 0, dust: 0 },
       belt: { life: 2, spirit: 2, moon: 0 },
-      runes: PB.Runes.emptyPouch(), board: [], tomes: 0, cubeRolls: 0, gambleRolls: 0,
+      runes: PB.Runes.emptyPouch(), board: [], stash: [], keeps: {}, tomes: 0, cubeRolls: 0, gambleRolls: 0,
       progress: { unlockedZone: 0, cleared: [], moon: 0, bestMoon: 0, moonCleared: {}, terrorCall: null }, // moonCleared: Moon tier -> zones cleared at it. terrorCall moves the Terror for one Moon.
       echoes: [],
       codex: { fusions: {}, uniques: {}, enemies: {} },
@@ -158,6 +158,8 @@
       if (!item || used[uid] || PB.Loot.slotFamily(SLOTS[i]) !== item.slot) return 'equipped-ref';
       used[uid] = true;
     }
+    if (!Array.isArray(s.stash) || s.stash.length > (PB.Hearth ? PB.Hearth.STASH_MAX : 40)) return 'stash';
+    for (i = 0; i < s.stash.length; i++) if ((err = validateItem(s.stash[i], uids))) return err;
     var c = s.currency, g = s.progress;
     if (!isObj(c) || !isInt(c.moonstones, 0, 1e9) || !isInt(c.dust, 0, 1e9)) return 'currency';
     var belt = s.belt, beltCap = PB.Belt ? PB.Belt.CAP : { life: 8, spirit: 8, moon: 4 };
@@ -167,6 +169,9 @@
     if (runeIds.length !== PB.RUNES.length || runeIds.some(function (id) { return !PB.RUNE_BY_ID[id] || !isInt(s.runes[id], 0, 1e9); })) return 'runes';
     if (!isInt(s.cubeRolls, 0, 1e9)) return 'cube';
     if (!isInt(s.gambleRolls, 0, 1e9)) return 'gamble';
+    if (!isObj(s.keeps)) return 'keeps';
+    var keepIds = Object.keys(s.keeps);
+    if (keepIds.some(function (id) { return !PB.BOSSES[id] || !isInt(s.keeps[id], 1, 1); })) return 'keeps';
     if (!isObj(g) || !isInt(g.unlockedZone, 0, PB.ZONES.length - 1) || !Array.isArray(g.cleared) || !isInt(g.moon, 0, 1000) || !isInt(g.bestMoon, 0, 1000)) return 'progress';
     if (!g.cleared.every(function (z) { return isInt(z, 0, PB.ZONES.length - 1); })) return 'progress';
     if (g.terrorCall != null && (!isObj(g.terrorCall) || !isInt(g.terrorCall.moon, 0, 1000) || !isInt(g.terrorCall.zone, 0, PB.ZONES.length - 1))) return 'progress';
@@ -208,7 +213,7 @@
     if (err) return { ok: false, error: err };
     // Counters must stay ahead of every stored id so new individuals and items never collide.
     s.roster.concat(s.echoes).forEach(function (r) { if (r.id >= s.nextIndId) s.nextIndId = r.id + 1; });
-    s.inventory.concat(s.board || []).forEach(function (it) { if (it.uid >= s.nextItemId) s.nextItemId = it.uid + 1; });
+    s.inventory.concat(s.board || []).concat(s.stash || []).forEach(function (it) { if (it.uid >= s.nextItemId) s.nextItemId = it.uid + 1; });
     return { ok: true, save: s };
   }
 

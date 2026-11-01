@@ -153,6 +153,35 @@
     g.restore();
   }
 
+  // The hearth gate: a moon ring you can walk back into. The cast draws a tighter ring on the hunter.
+  function drawHearth(g, world) {
+    var gate = world.gate, cast = world.cast, p = world.player;
+    if (cast && p) {
+      var frac = 1 - Math.max(0, cast.t) / (PB.Hearth ? PB.Hearth.CAST : 0.5);
+      g.save();
+      g.globalAlpha = 0.35 + 0.4 * frac;
+      g.strokeStyle = '#c9b6ff'; g.lineWidth = 2;
+      g.beginPath(); g.arc(p.x, p.y, 18 + 16 * frac, 0, PB.M.TAU); g.stroke();
+      g.restore();
+    }
+    if (!gate) return;
+    var pulse = 0.55 + 0.45 * Math.sin(R.frame * 0.12);
+    g.save();
+    g.globalAlpha = 0.28 + 0.22 * pulse;
+    g.fillStyle = '#c9b6ff';
+    g.beginPath(); g.ellipse(gate.x, gate.y, 30, 16, 0, 0, PB.M.TAU); g.fill();
+    g.globalAlpha = 0.9;
+    g.strokeStyle = '#f4eeff'; g.lineWidth = 2;
+    g.beginPath(); g.ellipse(gate.x, gate.y, 30, 16, 0, 0, PB.M.TAU); g.stroke();
+    g.globalAlpha = 0.45 * pulse;
+    g.strokeStyle = '#7d6cff'; g.lineWidth = 5;
+    g.beginPath(); g.ellipse(gate.x, gate.y, 16, 8, 0, 0, PB.M.TAU); g.stroke();
+    g.restore();
+    g.font = '14px ' + SERIF; g.textAlign = 'center'; g.fillStyle = '#f4eeff';
+    g.fillText('Hearth', gate.x, gate.y - 26);
+    g.textAlign = 'left';
+  }
+
   function drawSlaughterRing(g, world) {
     if (!PB.Slaughter) return;
     var n = PB.Slaughter.stacks(world);
@@ -493,7 +522,7 @@
     for (var i = 0; i < list.length; i++) {
       var d = list[i], key = d.tome ? 'tome' : d.flask ? 'flask-' + d.flask : d.rune ? 'rune' : d.item ? d.item.rarity : 'moonstone', c = BEAM[key] || BEAM.common;
       if (!onScreen(d, x0, y0)) continue;
-      var tall = key.indexOf('flask') === 0 ? 36 : key === 'common' ? 50 : key === 'magic' ? 90 : key === 'rune' ? 130 : 150, pulse = 0.75 + 0.25 * Math.sin(R.frame * 0.08 + d.id);
+      var tall = d.keep ? 190 : key.indexOf('flask') === 0 ? 36 : key === 'common' ? 50 : key === 'magic' ? 90 : key === 'rune' ? 130 : 150, pulse = 0.75 + 0.25 * Math.sin(R.frame * 0.08 + d.id);
       if (!R.beams) R.beams = {};
       if (!R.beams[key]) {
         var bc = document.createElement('canvas'); bc.width = 16; bc.height = 160;
@@ -1057,6 +1086,7 @@
     drawDrops(g, world, x0, y0, !!info.labels);
     drawGroundRings(g, world);
     drawGates(g, world);
+    drawHearth(g, world);
     drawSlaughterRing(g, world);
     drawPrints(g, j);
     var ents = world.ents, pad = 80, list = R.list;

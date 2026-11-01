@@ -18,7 +18,8 @@
 
   function place(world, x, y, what) {
     var d = { id: world.nextDrop = (world.nextDrop || 0) + 1, x: PB.M.clamp(x, 10, world.width - 10), y: PB.M.clamp(y, 10, world.height - 10),
-              item: what.item || null, moonstones: what.moonstones || 0, rune: what.rune || null, flask: what.flask || null, tome: what.tome || 0, warned: false, carrier: 0 };
+              item: what.item || null, moonstones: what.moonstones || 0, rune: what.rune || null, flask: what.flask || null, tome: what.tome || 0, warned: false, carrier: 0,
+              keep: !!what.keep, keepBoss: what.keepBoss || null };
     world.drops.push(d);
     PB.Events.emit(world.events, 'drop', { id: d.id, x: d.x, y: d.y, rarity: d.tome ? 'tome' : d.flask ? 'flask-' + d.flask : d.rune ? 'rune' : d.item ? d.item.rarity : 'moonstone', rune: d.rune, flask: d.flask, tome: d.tome || 0 });
     return d;
@@ -89,6 +90,7 @@
     }
     if (PB.Belt) PB.Belt.onKill(world, def, o);
     if (PB.Charms) PB.Charms.onKill(world, def, o, ilvl);
+    if (PB.Keeps) PB.Keeps.onKill(world, def);
   }
 
   // Into the bag (or the purse). Returns false when the bag is full.
@@ -120,6 +122,7 @@
     } else {
       if (bagCount(save) >= BAG_MAX) return false;
       save.inventory.push(d.item);
+      if (d.keep && d.keepBoss && PB.Keeps) PB.Keeps.claim(save, d.keepBoss);
       if (d.item.unique && !d.item.unread) save.codex.uniques[d.item.unique] = true;
       PB.Events.emit(world.events, 'pickup', { id: d.id, uid: d.item.uid, rarity: d.item.rarity, name: PB.Loot.publicName(d.item), unread: !!d.item.unread, upgrade: !!d.item.upgrade && !d.item.unread, x: d.x, y: d.y });
     }

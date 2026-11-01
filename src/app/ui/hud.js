@@ -297,6 +297,8 @@
       g.fillStyle = 'rgba(255,255,255,0.85)'; g.fillRect(bx + bw / 2 - 1, by - 4, 2, 22); // the phase-2 notch at 50%
       UI.text(g, (PB.BOSSES[bb.type] || {}).name || bb.type, LW / 2, by + 20, UI.font(14, true), UI.C.gold, 'center');
       if ((bb.phase || 1) > 1) UI.text(g, 'phase 2', bx + bw + 10, by, UI.font(12), UI.C.red);
+      var kept = PB.Keeps ? PB.Keeps.short(bb.type, world.save) : '';
+      if (kept) { g.save(); g.shadowColor = 'rgba(0,0,0,0.95)'; g.shadowBlur = 6; UI.text(g, kept, LW - 16, 28, UI.font(12), '#e8a060', 'right'); g.restore(); }
     }
   }
 
@@ -357,6 +359,20 @@
     });
   }
 
+  function drawHearthHint(g, world) {
+    if (!PB.Hearth || !PB.UI) return;
+    var UI = PB.UI;
+    if (world.cast) {
+      var frac = 1 - Math.max(0, world.cast.t) / PB.Hearth.CAST;
+      var bw = 200, bx = LW / 2 - bw / 2, by = LH - 214;
+      g.fillStyle = 'rgba(8,6,12,0.88)'; g.fillRect(bx, by, bw, 8);
+      g.fillStyle = '#c9b6ff'; g.fillRect(bx, by, bw * Math.max(0, Math.min(1, frac)), 8);
+      UI.text(g, 'Opening the hearth. Stand still.', LW / 2, by - 16, UI.font(13, true), '#f0e6ff', 'center');
+      return;
+    }
+    if (world.gate) UI.text(g, 'Hearth gate ' + Math.max(0, Math.ceil(world.gate.t)) + 's. Walk into the ring.', LW / 2, LH - 214, UI.font(13, true), '#f0e6ff', 'center');
+  }
+
   // info: {now, toasts, waveBanner, cam}
   function draw(g, world, info) {
     var p = world.player, now = info.now || 0, cam = info.cam || PB.Render.cam;
@@ -378,6 +394,7 @@
     drawCommandRow(g, world, now);
     drawChorus(g, world, now);
     drawPackList(g, world);
+    drawHearthHint(g, world);
     drawTop(g, world);
     drawBanner(g, info.waveBanner);
     drawToasts(g, info.toasts || []);
@@ -395,6 +412,8 @@
       lines.push('Belt  ' + b.life + ' life · ' + b.spirit + ' ' + res + ' · ' + b.moon + ' moon');
     }
     lines.push('Pack ' + world.counts.summon + ' · Enemies ' + world.counts.enemy + ' · Chorus ' + Math.round(world.chorus ? world.chorus.meter : 0) + '%');
+    if (world.gate) lines.push('Hearth gate open, ' + Math.max(0, Math.ceil(world.gate.t)) + 's');
+    else if (world.cast) lines.push('Opening the hearth');
     if (world.boon) lines.push(world.boon.name + (world.boon.cursed ? ' (cursed)' : ''));
     else if (world.grove) lines.push(world.grove.name + ' in the wood');
     var t = G && G.toasts && G.toasts[G.toasts.length - 1];

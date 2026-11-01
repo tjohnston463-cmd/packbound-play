@@ -48,6 +48,7 @@
     if (!save.stats || save.stats.kills < 30) {
       var calling = PB.Classes.of(save), first = PB.SUMMONS[calling.order[0]];
       toast('Hold the mouse for ' + calling.attackName + '. Space dodges. 1 calls a ' + first.name + '. Right-click focuses the pack.');
+      toast(PB.Input.keyOf('gate') + ' opens a hearth gate. Stand still. The wood waits while you use the chest.');
     }
     persist('zone');
     return w;
@@ -92,6 +93,7 @@
   // A zone attempt for the current save; zone defaults to the first unlocked zone.
   function startZone(zone, moon) {
     if (!G.save) G.save = PB.Save.newSave(newSeed());
+    if (G.world && G.world.gate) toast('The gate closes. That wood is left behind. What you carried stays.');
     return newField(seedFor(G.save), G.save, zone, moon);
   }
 
@@ -145,9 +147,37 @@
 
   // After a screen changed the save through a sim API: the live field takes the new mods (life % kept). At camp the
   // save is stored at once; in the field it waits for the next store point (never mid-wave).
+  function atCamp() { return G.screen === 'camp' || G.stack.indexOf('camp') >= 0; }
+  // A gate trip keeps the wood in memory, so camp is not "no world". Still store the hunter.
+  // The field inventory does not store mid-wave.
   function afterSaveChange() {
     if (G.world) PB.Mods.apply(G.world);
-    else persist('camp');
+    if (!G.world || atCamp()) persist('camp');
+  }
+
+  function enterHearth() {
+    if (!G.world || !G.world.gate || G.screen === 'camp') return;
+    readCarried(true);
+    persist('hearth');
+    G.stack = [];
+    if (PB.Input.releaseAll) PB.Input.releaseAll();
+    setScreen('camp');
+    toast('The wood waits on the other side of the gate.');
+  }
+  function returnThrough() {
+    if (!G.world || !G.world.gate) return;
+    PB.Hearth.stepOut(G.world);
+    G.stack = [];
+    setScreen('field');
+    toast('Back in the wood.');
+  }
+  function closeGate() {
+    if (!G.world) return;
+    G.world = null;
+    G.stack = [];
+    persist('camp');
+    if (G.screen !== 'camp') setScreen('camp');
+    toast('The gate closes. What was still on the ground is left behind. What you carried stays.');
   }
 
   // I / K / J open (or close) Inventory, Skills and Pack over the field or the camp; one menu replaces another.
@@ -303,13 +333,17 @@
       if (si && sc) { toast(si.name + ' earned the ' + sc.name + ' scar'); if (run) run.scars.push(si.name + ' earned ' + sc.name + ' (' + sc.text + ')'); }
     } else if (e.type === 'fusion') toast('Fused: ' + e.name + ' (' + fusionName(e.unit) + ')');
     else if (e.type === 'evolve') { var vi = w.inds[e.indId]; if (vi) toast(vi.name + ' evolved' + (e.name ? ' into a ' + e.name : '')); }
-    else if (e.type === 'pickup-fail') toast(e.reason === 'belt' ? 'The belt is full. Drink one, then come back.' : e.reason === 'tome' ? 'You are carrying every tome you can. Read one.' : 'Inventory full (40): the drop stays on the ground');
+    else if (e.type === 'pickup-fail') toast(e.reason === 'belt' ? 'The belt is full. Drink one, then come back.' : e.reason === 'tome' ? 'You are carrying every tome you can. Read one.' : 'Inventory full (40). ' + PB.Input.keyOf('gate') + ' opens the hearth. The drop stays on the ground.');
     else if (e.type === 'pickup' && e.tome) toast('Tome');
     else if (e.type === 'pickup' && e.unread) toast(e.name);
     else if (e.type === 'pickup' && e.rune) toast(e.name);
     else if (e.type === 'pickup' && e.flask === 'moon') toast('Moonflask');
     else if (e.type === 'sip-fail' && e.reason === 'empty') toast('No ' + (e.kind === 'moon' ? 'Moonflask' : e.kind === 'life' ? 'life flask' : 'spirit flask') + ' on the belt.');
     else if (e.type === 'hearthbond') toast('Hearthbond keeps a summon on its feet');
+    else if (e.type === 'hearth-enter') { enterHearth(); return; }
+    else if (e.type === 'hearth-cancel') toast('The gate falters. Stand still.');
+    else if (e.type === 'hearth-fade') toast('The hearth gate closes.');
+    else if (e.type === 'keep') toast((e.bossName || 'The boss') + ' kept something.');
     else if (e.type === 'pickup' && e.name && e.rarity === 'set') toast('Set: ' + e.name);
     else if (e.type === 'pickup' && e.name && (e.rarity === 'rare' || e.rarity === 'unique' || (e.upgrade && e.rarity === 'magic'))) toast((e.upgrade ? 'Better: ' : 'Found ') + e.name);
     else if (e.type === 'moonstone') toast('+' + e.n + ' Moonstones');
@@ -326,8 +360,10 @@
     else if (e.type === 'wave') {
       var quarryName = w.dir ? ((PB.ENEMIES[PB.Waves.quarry(w.dir.zone, w.dir.moon)] || {}).name || '') : '';
       var terror = w.dir && w.dir.terror;
-      G.waveBanner = e.boss ? { text: terror ? 'The Terror\'s boss' : 'The boss comes', sub: (PB.BOSSES[PB.ZONES[w.dir.zone].boss] || {}).name, t: 0, life: 2.6 }
+      var bossId = w.dir ? PB.ZONES[w.dir.zone].boss : null;
+      G.waveBanner = e.boss ? { text: terror ? 'The Terror\'s boss' : 'The boss comes', sub: (PB.BOSSES[bossId] || {}).name, t: 0, life: 2.6 }
                             : { text: (terror ? 'Terror · ' : '') + 'Wave ' + e.wave, sub: e.count + ' enemies · the wood wants ' + quarryName, t: 0, life: 2.2 };
+      if (e.boss && PB.Keeps && bossId) toast(PB.Keeps.blurb(bossId, w.save));
     }
     else if (e.type === 'wave-clear') {
       var remind = w.save ? PB.Skills.pointsLeft(w.save.player) : 0;
@@ -559,7 +595,7 @@
   }
 
   PB.Game = { boot: boot, G: G, newField: newField, start: start, persist: persist, hasSave: hasSave, newHunt: newHunt, continueGame: continueGame,
-              startZone: startZone, toCamp: toCamp, abandon: abandon, cleared: cleared, leaveCleared: leaveCleared, open: open, close: close, setScreen: setScreen, simRunning: simRunning,
+              startZone: startZone, toCamp: toCamp, abandon: abandon, cleared: cleared, leaveCleared: leaveCleared, enterHearth: enterHearth, returnThrough: returnThrough, closeGate: closeGate, open: open, close: close, setScreen: setScreen, simRunning: simRunning,
               showsWorld: showsWorld, fieldInfo: fieldInfo, uiFrame: uiFrame, applySettings: applySettings, promptExport: promptExport, promptImport: promptImport, toast: toast,
               onEvent: onEvent, onKey: onKey, simFrame: simFrame, exportSave: exportSave, importSave: importSave, endTick: endTick,
               afterSaveChange: afterSaveChange, toTitle: toTitle, lowEndTick: lowEndTick, lowEnd: lowEnd, toggleLowEnd: toggleLowEnd, setQuality: setQuality, quality: quality, setAutoDrop: setAutoDrop, autoDrop: autoDrop, autoDropped: autoDropped,

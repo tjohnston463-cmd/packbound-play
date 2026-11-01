@@ -14,6 +14,7 @@ Packbound is a top-down action RPG for the browser, in the spirit of Diablo II: 
 6. Elites, the quarry and bosses drop **Grove Runes** into a pouch (they do not fill the bag). At camp, open the **Hearth Cube**. Three of a rune become the next. One breaks into two of the previous. Socket them in order. A finished word changes how the pack fights. Three magic pieces of one slot become a rare. A Moonstone recuts a rare.
 7. Each wave grows a **grove shrine**. Walk into it. Combat, Moon and Den help. Greed drops better and you bruise. A red **Monster Shrine** turns the wood, and the next kill pays a rune. At camp, **Gamble** spends 6 Dust on a magic, rare, set or unique. Never a plain piece. The roll follows the deepest wood you have opened, and the Moon.
 8. Magic and better loot hits the ground **unread**. The beam is the color. **N** spends a tome to read the best one in the bag. Elites drop tomes. Camp reads the whole bag for free. **Grove Charms** and **Moon Charms** go on the charm board in the inventory (eight cells). They count in the fight. A Moon Charm takes two cells and adds one rank to a skill you have already taken.
+9. **H** opens a hearth gate. Stand still. A step or a shove cancels it. Camp is on the other side, and the wood is frozen where you left it. The **chest** holds 40 more pieces. Nothing in the chest counts while you fight. Walk back into the ring to return. Each boss keeps a list of named prizes. The first one you pick up from that boss was promised. Later kills still leave one about a third of the time.
 
 A fall ("The pack scatters") costs only the zone attempt: you keep every level, item and summon. Clearing a zone
 unlocks the next; after the fifth, **Moon tiers** raise the difficulty and the loot.
@@ -40,6 +41,7 @@ unlocks the next; after the fifth, **Moon tiers** raise the difficulty and the l
 | X | Drink a spirit flask (the blue orb: Spirit, Mana, or Faith) |
 | B | Drink a Moonflask (fills both, and ends a stagger) |
 | N | Read the best unread item (spends a tome; camp reads the bag for free) |
+| H | Hearth gate: stand still, and the wood waits while you are at camp |
 | Tab | Skinwalk (target under cursor or nearest) / exit |
 | V | Wild Hunt (when Chorus is full) |
 | T | Interact: open the Fusion Altar at a Fusion Shrine (loot is picked up by walking over it) |
@@ -69,6 +71,7 @@ Every key above can be changed in **Settings → Key bindings** (middle and side
 - Canvas UI: Title, Hearthgrove (roster by the fire, zone map, Moon Shrine, Hearth Cube), HUD (orbs, summon bar, command cooldown sweeps, Chorus moon, pack list, boss bar, off-screen arrows), Inventory, Pack, Skill tree, Fusion Altar with a Codex, Pause/Help/Settings, Victory and Game Over.
 - Grove Runes and the Hearth Cube: six runes in a pouch, sockets on the staff (two), mask, pelt and talisman, and five words (Wolfhowl, Briarwake, Crowmark, Oakheart, Hearthbond). A finished word replaces the loose rune stats. The two worn charm slots stay a behavior chase. The charm board is separate.
 - The charm board: eight cells in the inventory. Grove Charms take one. Moon Charms take two and add one rank to a skill you already have a point in. Synergies stay on the points you spent. Magic and better drops are unread until a tome (N) or the hearth names them. A boss always leaves a charm. Trash does not.
+- The hearth gate and the chest: H, then stand still. The wood freezes and you are at camp. The chest holds 40 pieces and none of them count in the fight. Walk back into the ring to return. Starting another wood closes the gate. Each boss keeps named prizes, listed on the right during the fight. The first one you carry home from that boss was promised. After that, about a third of the kills still leave one. Dying before you touch it does not spend the promise.
 - Grove sets: twelve green pieces in four sets (First Howl, the Green Wreath, Hearth of the Hunt, and The Oath, which only an Oathbound can find). Two pieces wake a bonus. Three pieces change the fight: a Den Mother who Marks, skirmishers that peck a rooted foe, a Chorus that heals the pack, or Zeal that curses. A set piece is not a rune base, so a rune word and a set on the same slot is a choice.
 - Grove shrines: one stone a wave, named before you step in. Combat, Moon, Den, Greed, or a cursed Monster Shrine. A cleared wood keeps growing them while you stay.
 - Hearth Gamble: 6 Dust for a magic, rare, set or unique at the level of the deepest wood you have opened. The bag still holds 40. A full bag refuses the roll.

@@ -5,7 +5,7 @@
 (function (PB) {
   'use strict';
   var LW = 1280, LH = 720, FX = 640, FY = 400;
-  var S = { mode: 'camp', moon: 0, confirm: null, t: 0, trees: null, cubeUid: null, cubePage: 0, gambleLast: null };
+  var S = { mode: 'camp', moon: 0, confirm: null, t: 0, trees: null, cubeUid: null, cubePage: 0, gambleLast: null, bagPage: 0, chestPage: 0 };
 
   function lcg(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
   function trees() {
@@ -148,8 +148,14 @@
       else PB.Game.open(m[0]);
     });
     if (UI.button(g, 'to-title', { x: 24, y: 76, w: 90, h: 26 }, 'Title', { size: 12 })) PB.Game.toTitle();
-    if (S.mode === 'camp' && UI.button(g, 'gamble', { x: 124, y: 76, w: 168, h: 26 }, 'Gamble · ' + PB.Camp.GAMBLE_COST + ' Dust', { size: 12 })) S.mode = 'gamble';
-    if (S.mode === 'camp' && G.save && G.save.belt && UI.button(g, 'belt', { x: 304, y: 76, w: 168, h: 26 }, 'Belt ' + G.save.belt.life + '/' + G.save.belt.spirit + '/' + G.save.belt.moon, { size: 12 })) S.mode = 'belt';
+    if (S.mode === 'camp' && UI.button(g, 'gamble', { x: 124, y: 76, w: 150, h: 26 }, 'Gamble · ' + PB.Camp.GAMBLE_COST + ' Dust', { size: 12 })) S.mode = 'gamble';
+    if (S.mode === 'camp' && G.save && G.save.belt && UI.button(g, 'belt', { x: 282, y: 76, w: 150, h: 26 }, 'Belt ' + G.save.belt.life + '/' + G.save.belt.spirit + '/' + G.save.belt.moon, { size: 12 })) S.mode = 'belt';
+    if (S.mode === 'camp' && G.save && PB.Hearth && UI.button(g, 'chest', { x: 440, y: 76, w: 150, h: 26 }, 'Chest ' + PB.Hearth.chest(G.save).length + '/' + PB.Hearth.STASH_MAX, { size: 12 })) { S.mode = 'chest'; S.bagPage = 0; S.chestPage = 0; }
+    if (S.mode === 'camp' && G.world && G.world.gate) {
+      UI.text(g, 'The gate is open. The wood is frozen where you left it.', 610, 70, UI.font(12), UI.C.gold);
+      if (UI.button(g, 'gate-back', { x: 900, y: 76, w: 180, h: 26 }, 'Return to the wood', { size: 12, tone: 'ember' })) PB.Game.returnThrough();
+      if (UI.button(g, 'gate-close', { x: 1090, y: 76, w: 160, h: 26 }, 'Close the gate', { size: 12 })) PB.Game.closeGate();
+    }
   }
 
   function maxMoon(save) { return save.progress.cleared.indexOf(PB.ZONES.length - 1) >= 0 ? save.progress.bestMoon + 1 : 0; }
@@ -158,6 +164,7 @@
     var save = G.save, g2 = save.progress, C = UI.C;
     UI.dim(g, 0.7);
     UI.panel(g, 90, 110, LW - 180, 470, { title: 'The Hunt' });
+    if (G.world && G.world.gate) UI.text(g, 'Choosing a wood closes the open gate. What you carried stays. What is still on the ground there does not.', LW / 2, 168, UI.font(13), C.gold, 'center');
     var terrorZ = PB.Terror ? PB.Terror.zone(save, S.moon) : -1;
     var xs = [], y = 330;
     for (var i = 0; i < PB.ZONES.length; i++) xs.push(200 + i * 220);
@@ -349,6 +356,56 @@
     if (UI.button(g, 'cube-back', { x: 1040, y: 576, w: 140, h: 34 }, 'Back', { tone: 'moss' })) S.mode = 'camp';
   }
 
+  var CHEST_PAGE = 11;
+  function rarityColor(it) {
+    var r = PB.RARITIES.filter(function (x) { return x.id === it.rarity; })[0];
+    return r ? r.color : '#d8d8d8';
+  }
+  function shortName(it) {
+    var n = PB.Loot.publicName(it);
+    return n.length > 32 ? n.slice(0, 30) + '…' : n;
+  }
+  function pageOf(list, page) {
+    var pages = Math.max(1, Math.ceil(list.length / CHEST_PAGE));
+    page = Math.max(0, Math.min(page, pages - 1));
+    return { page: page, pages: pages, rows: list.slice(page * CHEST_PAGE, page * CHEST_PAGE + CHEST_PAGE) };
+  }
+  function drawChest(g, UI, G) {
+    var save = G.save, C = UI.C;
+    if (!save.stash) save.stash = [];
+    UI.dim(g, 0.72);
+    UI.panel(g, 70, 96, LW - 140, 540, { title: 'Hearth Chest', glow: 'rgba(201,182,255,0.28)' });
+    UI.text(g, 'The bag fights. The chest does not. Click a piece to move it. Worn gear stays on you.', LW / 2, 148, UI.font(14), C.bone, 'center');
+    UI.text(g, 'Bag ' + PB.Drops.bagCount(save) + ' / ' + PB.Drops.BAG_MAX, 220, 176, UI.font(16, true), C.gold, 'center');
+    UI.text(g, 'Chest ' + save.stash.length + ' / ' + PB.Hearth.STASH_MAX, LW - 220, 176, UI.font(16, true), '#c9b6ff', 'center');
+    var bag = save.inventory.filter(function (it) { return !PB.Camp.slotOf(save, it.uid); });
+    var left = pageOf(bag, S.bagPage), right = pageOf(save.stash, S.chestPage);
+    S.bagPage = left.page; S.chestPage = right.page;
+    left.rows.forEach(function (it, i) {
+      var y = 206 + i * 32;
+      if (UI.button(g, 'chest-in-' + it.uid, { x: 100, y: y, w: 420, h: 28 }, shortName(it), { size: 13 })) {
+        var res = PB.Hearth.deposit(save, it.uid);
+        if (res.ok) PB.Game.afterSaveChange();
+        else PB.Game.toast(res.reason === 'chest' ? 'The chest is full.' : 'That piece is not in the bag.');
+      }
+      g.fillStyle = rarityColor(it); g.fillRect(108, y + 8, 10, 10);
+    });
+    right.rows.forEach(function (it, i) {
+      var y = 206 + i * 32;
+      if (UI.button(g, 'chest-out-' + it.uid, { x: 760, y: y, w: 420, h: 28 }, shortName(it), { size: 13 })) {
+        var res = PB.Hearth.withdraw(save, it.uid);
+        if (res.ok) PB.Game.afterSaveChange();
+        else PB.Game.toast(res.reason === 'bag' ? 'The bag is full.' : 'That piece is not in the chest.');
+      }
+      g.fillStyle = rarityColor(it); g.fillRect(768, y + 8, 10, 10);
+    });
+    if (!bag.length) UI.text(g, 'Nothing loose in the bag.', 310, 240, UI.font(14), C.dim, 'center');
+    if (!save.stash.length) UI.text(g, 'The chest is empty.', LW - 310, 240, UI.font(14), C.dim, 'center');
+    if (left.pages > 1 && UI.button(g, 'bag-page', { x: 100, y: 570, w: 160, h: 28 }, 'Bag page ' + (left.page + 1) + '/' + left.pages, { size: 12 })) S.bagPage = (left.page + 1) % left.pages;
+    if (right.pages > 1 && UI.button(g, 'stash-page', { x: 760, y: 570, w: 180, h: 28 }, 'Chest page ' + (right.page + 1) + '/' + right.pages, { size: 12 })) S.chestPage = (right.page + 1) % right.pages;
+    if (UI.button(g, 'chest-back', { x: 1040, y: 570, w: 140, h: 28 }, 'Back', { tone: 'moss' })) S.mode = 'camp';
+  }
+
   PB.Screens = PB.Screens || {};
   PB.Screens.camp = {
     pausesSim: true,
@@ -364,6 +421,7 @@
       else if (S.mode === 'cube') drawCube(g, UI, G);
       else if (S.mode === 'gamble') drawGamble(g, UI, G);
       else if (S.mode === 'belt') drawBeltShop(g, UI, G);
+      else if (S.mode === 'chest') drawChest(g, UI, G);
       else drawMenu(g, UI, G);
     }
   };

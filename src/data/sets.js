@@ -72,9 +72,14 @@
   }
 
   function ownedIds(src) {
-    var ids = {};
-    if (!src || !src.inventory) return ids;
-    src.inventory.forEach(function (it) { if (it && it.set) ids[it.set] = true; });
+    var ids = {}, lists, n, i, list;
+    if (!src) return ids;
+    lists = [src.inventory, src.stash, src.board];
+    for (n = 0; n < lists.length; n++) {
+      list = lists[n];
+      if (!list) continue;
+      for (i = 0; i < list.length; i++) if (list[i] && list[i].set) ids[list[i].set] = true;
+    }
     return ids;
   }
 

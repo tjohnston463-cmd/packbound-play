@@ -446,6 +446,16 @@
         if (ev.type === 'grove-take') addTrauma(j, ev.cursed ? 0.22 : 0.1);
         return;
       }
+      case 'hearth-open':
+        addTrauma(j, 0.18);
+        ring(j, ev.x, ev.y, 12, 78, 0.55, 0xc9b6ff, 4);
+        emit(j, ev.x, ev.y, 22, 0x9fc0ff, { speed: 70, life: 0.8, up: 50 });
+        return;
+      case 'keep':
+        addTrauma(j, 0.22);
+        ring(j, ev.x, ev.y, 8, 56, 0.45, 0xe8873a, 4);
+        emit(j, ev.x, ev.y, 18, 0xe8873a, { speed: 90, life: 0.7, up: 80 });
+        return;
       case 'drop': { // a column of motes in the rarity color; the beam itself is drawn by render.js from world.drops
         var rc = ev.rarity === 'unique' ? 0xe8873a : ev.rarity === 'set' ? 0x4ecf6a : ev.rarity === 'rare' ? 0xffd44a : ev.rarity === 'magic' ? 0x6f9cff : ev.rarity === 'rune' ? 0x7dcca0 : ev.rarity === 'flask-life' ? 0xc43838 : ev.rarity === 'flask-spirit' ? 0x4f8de0 : ev.rarity === 'flask-moon' ? 0xc080e0 : ev.rarity === 'moonstone' ? 0x9fc0ff : 0xd8d8d8;
         emit(j, ev.x, ev.y, ev.rarity === 'common' ? 4 : ev.rarity === 'rune' ? 16 : 12, rc, { speed: 40, life: 0.9, up: ev.rarity === 'rune' ? 160 : 120 });

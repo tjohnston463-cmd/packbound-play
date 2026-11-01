@@ -12,7 +12,7 @@
     opts = opts || {};
     var seed = (opts.seed >>> 0) || 1;
     var rng = {};
-    ['combat', 'ai', 'spawn', 'loot', 'names', 'fx', 'shrine', 'flask', 'charm'].forEach(function (k) { rng[k] = new PB.Rng(PB.deriveSeed(seed, k + ':' + (opts.zone || 0))); });
+    ['combat', 'ai', 'spawn', 'loot', 'names', 'fx', 'shrine', 'flask', 'charm', 'keep'].forEach(function (k) { rng[k] = new PB.Rng(PB.deriveSeed(seed, k + ':' + (opts.zone || 0))); });
     var level = opts.save ? opts.save.player.level : 1, ps = PB.Progression.playerStats(level);
     var world = {
       seed: seed, tick: 0, time: 0, width: W, height: H, freeze: 0, freezeGate: 0, stopTick: -1, stopN: 0,
@@ -23,7 +23,7 @@
       anchor: null, // the possessed summon during Skinwalk (C4); leash, Heel, Rally and auras center on it
       pack: PB.Commands.createPackState(),
       mods: opts.mods || { stats: {}, behaviors: {} },
-      save: opts.save || null, inds: {}, den: {}, active: {}, temps: [], telegraphs: [], nextTg: 0, corpses: [], nextCorpse: 0, chorus: { meter: 0 }, hunt: null, patches: [], drops: [], nextDrop: 0, dir: null, ilvl: opts.ilvl || 1, shrine: null, grove: null, boon: null, runeGift: 0, skin: { id: 0, left: 0, cd: 0, sigCd: 0 },
+      save: opts.save || null, inds: {}, den: {}, active: {}, temps: [], telegraphs: [], nextTg: 0, corpses: [], nextCorpse: 0, chorus: { meter: 0 }, hunt: null, patches: [], drops: [], nextDrop: 0, dir: null, ilvl: opts.ilvl || 1, shrine: null, grove: null, boon: null, runeGift: 0, skin: { id: 0, left: 0, cd: 0, sigCd: 0 }, gate: null, cast: null,
       obstacles: opts.obstacles || [], // collision circles {x, y, r}; placement rules live in the director (D4)
       counts: { summon: 0, enemy: 0 }, wolvesAlive: 0, _out: []
     };
@@ -334,6 +334,7 @@
 
     // 1. player input: movement, Thornlash, Bound, summon keys, commands (sim/player.js)
     PB.Player.update(world, input, dt);
+    if (PB.Hearth) PB.Hearth.tick(world, input, dt);
     PB.Shrines.touch(world);
 
     // 3. commands tick + Encircle stamp
@@ -474,9 +475,9 @@
       tick: world.tick, freeze: world.freeze, freezeGate: world.freezeGate, stopTick: world.stopTick, stopN: world.stopN, nextId: world.nextId, player: world.player, anchor: world.anchor ? world.anchor.id : null,
       pack: world.pack, rng: rng, ents: ents, den: world.den, active: world.active, obstacles: world.obstacles, telegraphs: world.telegraphs, corpses: world.corpses, chorus: world.chorus, hunt: world.hunt, patches: world.patches, drops: world.drops, nextDrop: world.nextDrop, dir: world.dir, ilvl: world.ilvl, shrine: world.shrine, skin: world.skin,
       time: world.time, mods: world.mods, temps: world.temps.map(function (t) { return t.id; }), nextTg: world.nextTg, nextCorpse: world.nextCorpse,
-      counts: world.counts, wolvesAlive: world.wolvesAlive, zoneIdx: world.zoneIdx, seed: world.seed, grove: world.grove, boon: world.boon, runeGift: world.runeGift,
+      counts: world.counts, wolvesAlive: world.wolvesAlive, zoneIdx: world.zoneIdx, seed: world.seed, grove: world.grove, boon: world.boon, runeGift: world.runeGift, gate: world.gate, cast: world.cast,
       // the whole save but its settings: gear, Echoes and progress change how combat resolves
-      save: s ? { player: s.player, roster: s.roster, currency: s.currency, runes: s.runes, belt: s.belt, board: s.board, tomes: s.tomes, cubeRolls: s.cubeRolls, gambleRolls: s.gambleRolls, codex: s.codex, stats: s.stats, inventory: s.inventory, equipped: s.equipped,
+      save: s ? { player: s.player, roster: s.roster, currency: s.currency, runes: s.runes, belt: s.belt, board: s.board, tomes: s.tomes, cubeRolls: s.cubeRolls, gambleRolls: s.gambleRolls, codex: s.codex, stats: s.stats, inventory: s.inventory, equipped: s.equipped, stash: s.stash, keeps: s.keeps,
                   echoes: s.echoes, progress: s.progress, nextIndId: s.nextIndId, nextItemId: s.nextItemId, seed: s.seed, version: s.version } : null
     };
   }
